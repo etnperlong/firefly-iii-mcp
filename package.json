@@ -3,17 +3,19 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@auth/core": "^0.39.1",
+    "@hono/auth-js": "^1.0.16",
     "@modelcontextprotocol/sdk": "^1.12.0",
-    "fetch-to-node": "^2.1.0",
+    "agents": "^0.0.94",
     "hono": "^4.7.10",
+    "jose": "^6.0.11",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250525.0",
-    "@types/node": "^22.15.21",
-    "wrangler": "^4.4.0"
+    "@types/node": "^22.15.23",
+    "wrangler": "^4.17.0"
   }
 }

@@ -9,7 +9,10 @@
       "ESNext",
       "DOM"
     ],
-    "types": ["./worker-configuration.d.ts"],
+    "types": [
+      "./worker-configuration.d.ts",
+      "./auth.d.ts"
+    ],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
