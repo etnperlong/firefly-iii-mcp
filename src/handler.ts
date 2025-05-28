@@ -13,7 +13,9 @@ export class MCPStreamableHttpServer {
     this.server = server;
   }
 
-  async handleMcpRequest(c: Context<BlankEnv, "/mcp", BlankInput>) {
+  async handleMcpRequest(c: Context<{
+    Bindings: CloudflareBindings;
+}, "/mcp", BlankInput>) {
     const sessionId = c.req.header("mcp-session-id");
     console.debug(`Received MCP request ${sessionId ? 'with session ID: ' + sessionId : 'without session ID'}`);
 
@@ -65,21 +67,5 @@ export class MCPStreamableHttpServer {
       },
       id: uuid(),
     };
-  }
-
-  /**
-   * Check if the request is an initialize request
-   */
-  private isInitializeRequest(body: any): boolean {
-    const isInitial = (data: any) => {
-      const result = InitializeRequestSchema.safeParse(data);
-      return result.success;
-    };
-
-    if (Array.isArray(body)) {
-      return body.some(request => isInitial(request));
-    }
-
-    return isInitial(body);
   }
 }

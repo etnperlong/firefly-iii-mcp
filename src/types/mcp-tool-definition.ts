@@ -30,3 +30,7 @@ export interface McpToolDefinition {
   /** Original operation ID from the OpenAPI spec */
   operationId: string;
 }
+
+export interface SecuritySchemeDefinition {
+  [key: string]: OpenAPIV3.SecuritySchemeObject;
+}

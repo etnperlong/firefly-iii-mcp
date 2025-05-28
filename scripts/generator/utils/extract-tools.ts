@@ -6,8 +6,6 @@ import type { JSONSchema7, JSONSchema7TypeName } from 'json-schema';
 import { generateOperationId } from './gen-operate-id.js';
 import { McpToolDefinition } from '../../../src/types/mcp-tool-definition.js';
 
-
-
 /**
  * Extracts tool definitions from an OpenAPI document
  *

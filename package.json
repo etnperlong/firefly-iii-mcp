@@ -7,17 +7,20 @@
     "tool-gen": "npx tsx scripts/generator.ts"
   },
   "dependencies": {
+    "@cfworker/json-schema": "^4.1.1",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "fetch-to-node": "^2.1.0",
     "hono": "^4.7.10",
-    "uuid": "^11.1.0"
+    "json-schema-to-zod": "^2.6.1",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.32"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",
-    "@cloudflare/workers-types": "^4.20250525.0",
-    "@types/node": "^22.15.21",
+    "@cloudflare/workers-types": "^4.20250528.0",
+    "@types/node": "^22.15.23",
     "json-schema": "^0.4.0",
     "openapi-types": "^12.1.3",
-    "wrangler": "^4.4.0"
+    "wrangler": "^4.17.0"
   }
 }

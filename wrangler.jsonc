@@ -3,10 +3,17 @@
   "name": "firefly-iii-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2025-05-27",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": ["nodejs_compat_v2"],
   "observability": {
     "enabled": true,
-  }
+  },
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_TOKEN_CACHE",
+      "id": "bbc3476da40041bea897afb9a3145b92",
+      "preview_id": "bbc3476da40041bea897afb9a3145b92"
+    }
+  ],
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
