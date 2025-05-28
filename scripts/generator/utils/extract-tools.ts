@@ -4,7 +4,7 @@
 import { OpenAPIV3 } from 'openapi-types';
 import type { JSONSchema7, JSONSchema7TypeName } from 'json-schema';
 import { generateOperationId } from './gen-operate-id.js';
-import { McpToolDefinition } from '../types/mcp-tool-definition.js';
+import { McpToolDefinition } from '../../../src/types/mcp-tool-definition.js';
 
 
 
@@ -62,7 +62,8 @@ export function extractToolsFromApi(api: OpenAPIV3.Document): McpToolDefinition[
       }
 
       // Extract parameter details for execution
-      const executionParameters = parameters.map((p) => ({ name: p.name, in: p.in }));
+      const executionParameters = parameters.filter((p) => p.name !== 'X-Trace-Id')
+        .map((p) => ({ name: p.name, in: p.in }));
 
       // Determine security requirements
       const securityRequirements =
@@ -173,64 +174,128 @@ export function mapOpenApiSchemaToJsonSchema(
 ): JSONSchema7 | boolean {
   // Handle reference objects
   if ('$ref' in schema) {
-    console.warn(`Unresolved $ref '${schema.$ref}'.`);
-    return { type: 'object' };
+    // It's generally better to resolve references, but for now,
+    // we'll return a generic object schema and log a warning.
+    // Depending on the use case, throwing an error or having a more
+    // sophisticated resolution mechanism might be necessary.
+    console.warn(`Encountered an unresolved schema reference: '${schema.$ref}'. Returning a generic object schema.`);
+    return { type: 'object', description: `Reference to ${schema.$ref}` };
   }
 
-  // Handle boolean schemas
-  if (typeof schema === 'boolean') return schema;
+  // Handle boolean schemas (OpenAPI allows schema to be true/false)
+  if (typeof schema === 'boolean') {
+    return schema;
+  }
 
-  // Create a copy of the schema to modify
-  const jsonSchema: JSONSchema7 = { ...schema } as any;
+  // Create a shallow copy to avoid modifying the original schema object
+  const jsonSchema: any = { ...schema };
 
-  // Convert integer type to number (JSON Schema compatible)
-  if (schema.type === 'integer') jsonSchema.type = 'number';
+  // OpenAPI specific keywords to remove.
+  // 'discriminator' is also OpenAPI specific but might be handled differently
+  // if you plan to support polymorphism in a specific way with JSON Schema.
+  const OMIT_KEYWORDS = [
+    'nullable',
+    'example',
+    'xml',
+    'externalDocs',
+    'deprecated',
+    'readOnly',
+    'writeOnly',
+    'discriminator',
+    // 'example' is listed again as it might appear at different levels
+    // and we want to be thorough.
+    'examples' // OpenAPI 3.0.x uses 'example', 3.1.x can use 'examples'
+  ];
 
-  // Remove OpenAPI-specific properties that aren't in JSON Schema
-  delete (jsonSchema as any).nullable;
-  delete (jsonSchema as any).example;
-  delete (jsonSchema as any).xml;
-  delete (jsonSchema as any).externalDocs;
-  delete (jsonSchema as any).deprecated;
-  delete (jsonSchema as any).readOnly;
-  delete (jsonSchema as any).writeOnly;
+  for (const keyword of OMIT_KEYWORDS) {
+    delete jsonSchema[keyword];
+  }
 
-  // Handle nullable properties by adding null to the type
-  if (schema.nullable) {
+  // Convert OpenAPI 'integer' type to JSON Schema 'number' or 'integer'
+  // JSON Schema technically has 'integer', but 'number' is often more compatible
+  // if specific integer validation isn't strictly needed.
+  // For stricter adherence, you could keep it as 'integer'.
+  if (jsonSchema.type === 'integer') {
+    jsonSchema.type = 'number'; // Broaden to number
+  }
+
+  // Handle OpenAPI 'nullable' property by adding 'null' to the type array
+  // This was previously deleted, but its effect (allowing null) needs to be translated.
+  if (schema.nullable === true) {
     if (Array.isArray(jsonSchema.type)) {
-      if (!jsonSchema.type.includes('null')) jsonSchema.type.push('null');
+      if (!jsonSchema.type.includes('null')) {
+        jsonSchema.type.push('null');
+      }
     } else if (typeof jsonSchema.type === 'string') {
       jsonSchema.type = [jsonSchema.type as JSONSchema7TypeName, 'null'];
     } else if (!jsonSchema.type) {
+      // If type is not defined, and it's nullable, it implies it can be null.
+      // However, a schema usually has a type. This case might indicate an underspecified schema.
       jsonSchema.type = 'null';
     }
   }
 
-  // Recursively process object properties
-  if (jsonSchema.type === 'object' && jsonSchema.properties) {
+  // Recursively process nested schemas
+  if (jsonSchema.properties) {
     const mappedProps: { [key: string]: JSONSchema7 | boolean } = {};
-
     for (const [key, propSchema] of Object.entries(jsonSchema.properties)) {
-      if (typeof propSchema === 'object' && propSchema !== null) {
-        mappedProps[key] = mapOpenApiSchemaToJsonSchema(propSchema as OpenAPIV3.SchemaObject);
-      } else if (typeof propSchema === 'boolean') {
-        mappedProps[key] = propSchema;
-      }
+      mappedProps[key] = mapOpenApiSchemaToJsonSchema(propSchema as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
     }
-
     jsonSchema.properties = mappedProps;
   }
 
-  // Recursively process array items
-  if (
-    jsonSchema.type === 'array' &&
-    typeof jsonSchema.items === 'object' &&
-    jsonSchema.items !== null
-  ) {
-    jsonSchema.items = mapOpenApiSchemaToJsonSchema(
-      jsonSchema.items as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
-    );
+  if (jsonSchema.items) {
+    if (Array.isArray(jsonSchema.items)) {
+      jsonSchema.items = jsonSchema.items.map((itemSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) =>
+        mapOpenApiSchemaToJsonSchema(itemSchema)
+      );
+    } else {
+      jsonSchema.items = mapOpenApiSchemaToJsonSchema(jsonSchema.items as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
+    }
   }
 
-  return jsonSchema;
+  const arrayKeywords = ['allOf', 'anyOf', 'oneOf'];
+  for (const keyword of arrayKeywords) {
+    if (Array.isArray(jsonSchema[keyword])) {
+      jsonSchema[keyword] = jsonSchema[keyword].map((subSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) =>
+        mapOpenApiSchemaToJsonSchema(subSchema)
+      );
+    }
+  }
+
+  if (jsonSchema.not && typeof jsonSchema.not === 'object') {
+    jsonSchema.not = mapOpenApiSchemaToJsonSchema(jsonSchema.not as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
+  }
+
+  if (jsonSchema.additionalProperties && typeof jsonSchema.additionalProperties === 'object') {
+    // Check if it's not a boolean `true` or `false`
+    if (jsonSchema.additionalProperties !== true && jsonSchema.additionalProperties !== false) {
+         jsonSchema.additionalProperties = mapOpenApiSchemaToJsonSchema(
+           jsonSchema.additionalProperties as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+         );
+    }
+  }
+  
+  if (jsonSchema.patternProperties) {
+    const mappedPatternProps: { [key: string]: JSONSchema7 | boolean } = {};
+    for (const [pattern, patternSchema] of Object.entries(jsonSchema.patternProperties)) {
+        mappedPatternProps[pattern] = mapOpenApiSchemaToJsonSchema(patternSchema as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
+    }
+    jsonSchema.patternProperties = mappedPatternProps;
+  }
+  
+  // JSON Schema draft 7 doesn't have 'definitions', it uses '$defs' typically for later drafts,
+  // or puts definitions at the root. If 'definitions' comes from OpenAPI,
+  // it's usually for reusable components which should have been resolved by the dereferencing step.
+  // If they are still present, they should also be mapped.
+  if (jsonSchema.definitions) {
+    const mappedDefs: { [key: string]: JSONSchema7 | boolean } = {};
+    for (const [key, defSchema] of Object.entries(jsonSchema.definitions)) {
+        mappedDefs[key] = mapOpenApiSchemaToJsonSchema(defSchema as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
+    }
+    jsonSchema.definitions = mappedDefs;
+  }
+
+
+  return jsonSchema as JSONSchema7 | boolean;
 }

@@ -1,5 +1,5 @@
 import SwaggerParser from '@apidevtools/swagger-parser';
-import { McpToolDefinition } from "./types/mcp-tool-definition";
+import { McpToolDefinition } from "../../src/types/mcp-tool-definition";
 import type { OpenAPIV3 } from 'openapi-types';
 import { extractToolsFromApi } from './utils/extract-tools';
 
