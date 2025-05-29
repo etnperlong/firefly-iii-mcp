@@ -10,11 +10,12 @@ import type { JSONSchema7 } from 'json-schema';
 export type App = typeof import('./index').default;
 
 /**
- * MCP Agent Properties
+ * Upstream Config
  */
-export type AgentProps = {
-	token?: string
-};
+export type UpstreamConfig = {
+  baseUrl: string;
+  pat: string;
+}
 
 /**
  * MCP Tool Definition describes a tool extracted from an OpenAPI spec

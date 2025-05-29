@@ -1,15 +1,15 @@
 import { McpAgent } from 'agents/mcp'
-import { AgentProps, CallToolRequestArguments, McpToolDefinition, SecuritySchemeDefinition } from './types';
+import { UpstreamConfig, CallToolRequestArguments, McpToolDefinition } from './types';
 import { Schema, Validator } from '@cfworker/json-schema';
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequest, CallToolRequestSchema, CallToolResult, ListToolsRequestSchema, Tool } from '@modelcontextprotocol/sdk/types.js';
 import { generatedTools } from './generated/tools';
 
 
-export class FireflyIIIAgent extends McpAgent<Env, {}, AgentProps> {
+export class FireflyIIIAgent extends McpAgent<Env, {}, UpstreamConfig> {
   server = new Server({
     name: 'Firefly III MCP Agent',
-    version: '1.0.0',
+    version: '1.2.0',
   }, {
     capabilities: { tools: {} }
   })
@@ -89,10 +89,10 @@ export class FireflyIIIAgent extends McpAgent<Env, {}, AgentProps> {
      * Used Preloaded Security Schemes, ignored for now
      */
 
-    headers['Authorization'] = `Bearer ${this.props.token}`;
+    headers['Authorization'] = `Bearer ${this.props.pat}`;
 
     // Construct the full URL
-    const requestEndpoint = `${this.env.FIREFLY_III_BASE_URL}/api${urlPath}`
+    const requestEndpoint = `${this.props.baseUrl}/api${urlPath}`
     const requestUrl = queryParams ? `${requestEndpoint}?${new URLSearchParams(queryParams).toString()}` : requestEndpoint;
     const requestMethod = definition.method.toUpperCase();
 
@@ -146,13 +146,11 @@ export class FireflyIIIAgent extends McpAgent<Env, {}, AgentProps> {
   }
 
   async init() {
-    const accessToken = this.props.token;
-
-    if (!accessToken) {
+    if (!this.props.pat || !this.props.baseUrl) {
       this.server.setRequestHandler(ListToolsRequestSchema, async () => {
         const unauthorizedTool: Tool = {
           name: 'unauthorized',
-          description: 'This tool is not available because the user is not authenticated. Please contact your administrator to configure this MCP server.',
+          description: 'This tool is not available because the user is not authenticated or the base URL is not configured. Please contact your administrator to configure this MCP server.',
           inputSchema: {
             type: 'object'
           },
