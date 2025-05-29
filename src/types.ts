@@ -48,3 +48,7 @@ export interface McpToolDefinition {
 export interface SecuritySchemeDefinition {
   [key: string]: OpenAPIV3.SecuritySchemeObject;
 }
+
+export type CallToolRequestArguments = {
+  [x: string]: unknown;
+};
