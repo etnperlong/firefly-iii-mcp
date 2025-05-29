@@ -11,7 +11,8 @@
     ],
     "types": [
       "./worker-configuration.d.ts",
-      "./auth.d.ts"
+      "./auth.d.ts",
+      "node"
     ],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"

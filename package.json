@@ -4,6 +4,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types",
+    "mcp-toolgen": "npx tsx scripts/generate-tools.ts",
     "inspect": "npx @modelcontextprotocol/inspector"
   },
   "dependencies": {
@@ -16,7 +17,12 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/node": "^22.15.23",
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "^22.15.24",
+    "change-case": "^5.4.4",
+    "json-schema": "^0.4.0",
+    "openapi-types": "^12.1.3",
     "wrangler": "^4.17.0"
   }
 }
