@@ -8,14 +8,10 @@
     "inspect": "npx @modelcontextprotocol/inspector"
   },
   "dependencies": {
-    "@auth/core": "^0.39.1",
     "@cfworker/json-schema": "^4.1.1",
-    "@hono/auth-js": "^1.0.16",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "agents": "^0.0.94",
-    "hono": "^4.7.10",
-    "jose": "^6.0.11",
-    "uuid": "^11.1.0"
+    "hono": "^4.7.10"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",

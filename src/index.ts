@@ -4,30 +4,12 @@ import { cors } from 'hono/cors';
 
 import { FireflyIIIAgent } from './agent';
 import { AgentProps } from './types';
-import { getToken, setupOAuth, verifyAuth } from './auth';
+import { getToken } from './auth';
 
 const app = new Hono<{ Bindings: Env }>()
-// Setup authentication
-setupOAuth(app);
 
 app.use(logger())
 app.use('*', cors());
-
-app.get('/api/success', (c) => {
-  // Get User Info and save to KV
-  const auth = c.get('authUser');
-  return c.json(auth.session.user);
-})
-
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
-
-app.get('/userInfo', verifyAuth(), (c) => {
-  const auth = c.get('authUser');
-  return c.json(auth.session.user);
-})
-
 // Streamable MCP Server
 app.use("/mcp", (c) => {
   const token = getToken(c);
