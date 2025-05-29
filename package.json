@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "inspect": "npx @modelcontextprotocol/inspector"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",

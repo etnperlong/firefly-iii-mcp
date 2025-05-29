@@ -3,12 +3,12 @@ import { logger } from 'hono/logger'
 import { cors } from 'hono/cors';
 
 import { FireflyIIIAgent } from './agent';
-import { UserProps } from './types';
-import { setupAuth, verifyAuth } from './auth';
+import { AgentProps } from './types';
+import { getToken, setupOAuth, verifyAuth } from './auth';
 
 const app = new Hono<{ Bindings: Env }>()
 // Setup authentication
-setupAuth(app);
+setupOAuth(app);
 
 app.use(logger())
 app.use('*', cors());
@@ -28,14 +28,25 @@ app.get('/userInfo', verifyAuth(), (c) => {
   return c.json(auth.session.user);
 })
 
+// Streamable MCP Server
 app.use("/mcp", (c) => {
-  // const auth = c.get('authUser');
-  // Streamable MCP server
-  const executionCtx = {
+  const token = getToken(c);
+  const agentContext = {
     ...c.executionCtx,
-    props: {} satisfies UserProps
+    props: { token: token } satisfies AgentProps
   }
-  const mcp = FireflyIIIAgent.serve('/mcp').fetch(c.req.raw, c.env, executionCtx);
+  const mcp = FireflyIIIAgent.serve('/mcp').fetch(c.req.raw, c.env, agentContext);
+  return mcp;
+});
+
+// SSE MCP Server
+app.use("/sse*", (c) => {
+  const token = getToken(c);
+  const agentContext = {
+    ...c.executionCtx,
+    props: { token: token } satisfies AgentProps
+  }
+  const mcp = FireflyIIIAgent.serveSSE('/sse').fetch(c.req.raw, c.env, agentContext);
   return mcp;
 });
 

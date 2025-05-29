@@ -1,7 +1,12 @@
-import { AuthUser } from "@hono/auth-js";
-
+/**
+ * Hono App Type
+ */
 export type App = typeof import('./index').default;
 
-export type UserProps = {
+/**
+ * MCP Agent Properties
+ */
+export type AgentProps = {
 	token?: string
 };
+

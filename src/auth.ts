@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { initAuthConfig, authHandler, verifyAuth } from '@hono/auth-js';
 import { App } from "./types";
 
-export const setupAuth = (app: App) => {
+export const setupOAuth = (app: App) => {
   app.use("*", initAuthConfig((c: Context) => ({
     secret: c.env.AUTH_SECRET,
     providers: [
@@ -69,7 +69,8 @@ export const getToken = (c: Context<{
 }, "/userInfo", {}>) => {
   const tokenInQuery = c.req.query('token');
   const tokenInHeader = c.req.header('Authorization')?.split(' ')[1];
-  const token = tokenInQuery || tokenInHeader;
+  const tokenInSecret = c.env.FIREFLY_III_PAT;
+  const token = tokenInQuery || tokenInHeader || tokenInSecret;
   return token;
 }
 
