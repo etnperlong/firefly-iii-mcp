@@ -146,7 +146,7 @@ This project utilizes and modifies generation scripts from [harsha-iiiv/openapi-
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue.
+Contributions are welcome! This project uses Turborepo to manage the monorepo workflow. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on how to contribute.
 
 ## License
 

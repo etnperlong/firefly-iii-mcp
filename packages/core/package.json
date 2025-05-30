@@ -16,7 +16,9 @@
     "build": "tsc",
     "clean": "rimraf dist",
     "prebuild": "npm run clean && npm run toolgen",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src/**/*.ts",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",

@@ -1,6 +1,12 @@
 # prod
 dist/
 
+# Turborepo
+.turbo/
+
+# npm
+/*.tgz
+
 # dev
 .yarn/
 !.yarn/releases

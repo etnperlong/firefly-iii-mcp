@@ -17,7 +17,10 @@
     "prebuild": "npm run clean",
     "postbuild": "shx test -e dist/*.js && shx chmod +x dist/*.js || true",
     "start": "node dist/app.js",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "@firefly-iii-mcp/core": "1.3.0",
