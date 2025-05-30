@@ -195,7 +195,7 @@ export function mapOpenApiSchemaToJsonSchema(
   // 'discriminator' is also OpenAPI specific but might be handled differently
   // if you plan to support polymorphism in a specific way with JSON Schema.
   const OMIT_KEYWORDS = [
-    'nullable',
+    // 'nullable',
     'example',
     'xml',
     'externalDocs',
@@ -205,23 +205,76 @@ export function mapOpenApiSchemaToJsonSchema(
     'discriminator',
     // 'example' is listed again as it might appear at different levels
     // and we want to be thorough.
-    'examples' // OpenAPI 3.0.x uses 'example', 3.1.x can use 'examples'
+    'examples', // OpenAPI 3.0.x uses 'example', 3.1.x can use 'examples'
+    // 'format',
   ];
 
   for (const keyword of OMIT_KEYWORDS) {
     delete jsonSchema[keyword];
   }
 
+  // Handle format for string types - only keep 'enum' and 'date-time' formats
+  if (jsonSchema.type && jsonSchema.format ) {
+    switch (jsonSchema.type) {
+      case 'string':
+        if (jsonSchema.format !== 'date-time' && jsonSchema.format !== 'enum') {
+          delete jsonSchema.format;
+        }
+        break;
+      case 'number':
+        if (jsonSchema.format !== 'float' && jsonSchema.format !== 'double') {
+          delete jsonSchema.format;
+        }
+        break;
+      case 'integer':
+        if (jsonSchema.format !== 'int32' && jsonSchema.format !== 'int64') {
+          delete jsonSchema.format;
+        }
+        break;
+      case 'boolean':
+        delete jsonSchema.format;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Validate required fields against properties
+  if (jsonSchema.required && Array.isArray(jsonSchema.required) && jsonSchema.properties) {
+    const invalidRequiredFields = jsonSchema.required.filter(
+      (field: string) => !jsonSchema.properties[field]
+    );
+    
+    if (invalidRequiredFields.length > 0) {
+      console.warn(
+        `Schema has required fields that don't exist in properties: ${invalidRequiredFields.join(', ')}`
+      );
+      
+      // Filter out invalid required fields
+      jsonSchema.required = jsonSchema.required.filter(
+        (field: string) => jsonSchema.properties[field]
+      );
+      
+      // If no required fields left, remove the required property
+      if (jsonSchema.required.length === 0) {
+        delete jsonSchema.required;
+      }
+    }
+  }
+
   // Convert OpenAPI 'integer' type to JSON Schema 'number' or 'integer'
   // JSON Schema technically has 'integer', but 'number' is often more compatible
   // if specific integer validation isn't strictly needed.
   // For stricter adherence, you could keep it as 'integer'.
+  /*
   if (jsonSchema.type === 'integer') {
     jsonSchema.type = 'number'; // Broaden to number
   }
+  */
 
   // Handle OpenAPI 'nullable' property by adding 'null' to the type array
   // This was previously deleted, but its effect (allowing null) needs to be translated.
+  /*
   if (schema.nullable === true) {
     if (Array.isArray(jsonSchema.type)) {
       if (!jsonSchema.type.includes('null')) {
@@ -235,6 +288,7 @@ export function mapOpenApiSchemaToJsonSchema(
       jsonSchema.type = 'null';
     }
   }
+  */
 
   // Recursively process nested schemas
   if (jsonSchema.properties) {

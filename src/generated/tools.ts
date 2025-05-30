@@ -13,12 +13,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -28,12 +28,10 @@ export const generatedTools: McpToolDefinition[] = [
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD.\n"
         },
         "type": {
@@ -190,12 +188,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -278,12 +276,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -366,18 +364,17 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
         "date": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. When added to the request, Firefly III will show the account's balance on that day.\n"
         },
         "type": {
@@ -520,7 +517,6 @@ export const generatedTools: McpToolDefinition[] = [
         },
         "date": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. When added to the request, Firefly III will show the account's balance on that day.\n"
         }
       },
@@ -588,84 +584,62 @@ export const generatedTools: McpToolDefinition[] = [
         "requestBody": {
           "type": "object",
           "required": [
-            "name",
-            "type"
+            "name"
           ],
           "properties": {
             "name": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "iban": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "iban"
+              "type": "string",
+              "nullable": true
             },
             "bic": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "account_number": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "opening_balance": {
-              "type": "string",
-              "format": "amount"
+              "type": "string"
             },
             "opening_balance_date": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "date-time"
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
             },
             "virtual_balance": {
-              "type": "string",
-              "format": "amount"
+              "type": "string"
             },
             "currency_id": {
               "type": "string",
-              "format": "string",
               "description": "Use either currency_id or currency_code. Defaults to the user's default currency."
             },
             "currency_code": {
               "type": "string",
-              "format": "string",
               "description": "Use either currency_id or currency_code. Defaults to the user's default currency."
             },
             "active": {
               "type": "boolean",
-              "format": "boolean",
               "default": true,
               "description": "If omitted, defaults to true."
             },
             "order": {
-              "type": "number",
+              "type": "integer",
               "format": "int32",
               "description": "Order of the account"
             },
             "include_net_worth": {
               "type": "boolean",
-              "format": "boolean",
               "default": true,
               "description": "If omitted, defaults to true."
             },
             "account_role": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
               "description": "Is only mandatory when the type is asset.",
+              "nullable": true,
               "enum": [
                 "defaultAsset",
                 "sharedAsset",
@@ -676,32 +650,24 @@ export const generatedTools: McpToolDefinition[] = [
               ]
             },
             "credit_card_type": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
               "description": "Mandatory when the account_role is ccAsset. Can only be monthlyFull or null.",
+              "nullable": true,
               "enum": [
                 "monthlyFull",
                 null
               ]
             },
             "monthly_payment_date": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "nullable": true,
+              "type": "string",
               "format": "date-time",
               "description": "Mandatory when the account_role is ccAsset. Moment at which CC payment installments are asked for by the bank."
             },
             "liability_type": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
               "description": "Mandatory when type is liability. Specifies the exact type.",
+              "nullable": true,
               "enum": [
                 "loan",
                 "debt",
@@ -710,20 +676,14 @@ export const generatedTools: McpToolDefinition[] = [
               ]
             },
             "interest": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
-              "description": "Mandatory when type is liability. Interest percentage."
+              "type": "string",
+              "description": "Mandatory when type is liability. Interest percentage.",
+              "nullable": true
             },
             "interest_period": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
               "description": "Mandatory when type is liability. Period over which the interest is calculated.",
+              "nullable": true,
               "enum": [
                 "weekly",
                 "monthly",
@@ -734,34 +694,25 @@ export const generatedTools: McpToolDefinition[] = [
               ]
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "latitude": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "number",
               "format": "double",
+              "nullable": true,
               "description": "Latitude of the account's location, if applicable. Can be used to draw a map. If omitted, the existing location will be kept. If submitted as NULL, the current location will be removed."
             },
             "longitude": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "number",
               "format": "double",
+              "nullable": true,
               "description": "Latitude of the account's location, if applicable. Can be used to draw a map. If omitted, the existing location will be kept. If submitted as NULL, the current location will be removed."
             },
             "zoom_level": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
+              "nullable": true,
               "description": "Zoom level for the map, if drawn. This to set the box right. Unfortunately this is a proprietary value because each map provider has different zoom levels. If omitted, the existing location will be kept. If submitted as NULL, the current location will be removed."
             }
           },
@@ -814,12 +765,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         }
@@ -889,12 +840,10 @@ export const generatedTools: McpToolDefinition[] = [
           ],
           "properties": {
             "filename": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "attachable_type": {
               "type": "string",
-              "format": "string",
               "description": "The object class to which the attachment must be linked.",
               "enum": [
                 "Account",
@@ -907,19 +856,14 @@ export const generatedTools: McpToolDefinition[] = [
             },
             "attachable_id": {
               "type": "string",
-              "format": "string",
               "description": "ID of the model this attachment is linked to."
             },
             "title": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             }
           },
           "description": "JSON array or key=value pairs with the necessary attachment information. See the model for the exact specifications."
@@ -1009,19 +953,14 @@ export const generatedTools: McpToolDefinition[] = [
           "type": "object",
           "properties": {
             "filename": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "title": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             }
           },
           "description": "JSON array with updated attachment information. See the model for the exact specifications."
@@ -1222,12 +1161,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -1358,12 +1297,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -1373,12 +1312,10 @@ export const generatedTools: McpToolDefinition[] = [
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD.\n"
         },
         "type": {
@@ -1535,23 +1472,21 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. If it is are added to the request, Firefly III will calculate the appropriate payment and paid dates.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. If it is added to the request, Firefly III will calculate the appropriate payment and paid dates.\n"
         }
       }
@@ -1653,25 +1588,20 @@ export const generatedTools: McpToolDefinition[] = [
           "properties": {
             "currency_id": {
               "type": "string",
-              "format": "string",
               "description": "Use either currency_id or currency_code"
             },
             "currency_code": {
               "type": "string",
-              "format": "string",
               "description": "Use either currency_id or currency_code"
             },
             "name": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "amount_min": {
-              "type": "string",
-              "format": "amount"
+              "type": "string"
             },
             "amount_max": {
-              "type": "string",
-              "format": "amount"
+              "type": "string"
             },
             "date": {
               "type": "string",
@@ -1689,7 +1619,6 @@ export const generatedTools: McpToolDefinition[] = [
             },
             "repeat_freq": {
               "type": "string",
-              "format": "string",
               "description": "How often the bill must be paid.",
               "enum": [
                 "weekly",
@@ -1700,36 +1629,26 @@ export const generatedTools: McpToolDefinition[] = [
               ]
             },
             "skip": {
-              "type": "number",
+              "type": "integer",
               "format": "int32",
               "description": "How often the bill must be skipped. 1 means a bi-monthly bill."
             },
             "active": {
               "type": "boolean",
-              "format": "boolean",
               "description": "If the bill is active."
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "object_group_id": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
+              "nullable": true,
               "description": "The group ID of the group this object is part of. NULL if no group."
             },
             "object_group_title": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
+              "nullable": true,
               "description": "The name of the group. NULL if no group."
             }
           },
@@ -1770,12 +1689,10 @@ export const generatedTools: McpToolDefinition[] = [
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. If it is are added to the request, Firefly III will calculate the appropriate payment and paid dates.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. If it is added to the request, Firefly III will calculate the appropriate payment and paid dates.\n"
         }
       },
@@ -1864,25 +1781,20 @@ export const generatedTools: McpToolDefinition[] = [
           "properties": {
             "currency_id": {
               "type": "string",
-              "format": "string",
               "description": "Use either currency_id or currency_code"
             },
             "currency_code": {
               "type": "string",
-              "format": "string",
               "description": "Use either currency_id or currency_code"
             },
             "name": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "amount_min": {
-              "type": "string",
-              "format": "amount"
+              "type": "string"
             },
             "amount_max": {
-              "type": "string",
-              "format": "amount"
+              "type": "string"
             },
             "date": {
               "type": "string",
@@ -1900,7 +1812,6 @@ export const generatedTools: McpToolDefinition[] = [
             },
             "repeat_freq": {
               "type": "string",
-              "format": "string",
               "description": "How often the bill must be paid.",
               "enum": [
                 "weekly",
@@ -1911,36 +1822,26 @@ export const generatedTools: McpToolDefinition[] = [
               ]
             },
             "skip": {
-              "type": "number",
+              "type": "integer",
               "format": "int32",
               "description": "How often the bill must be skipped. 1 means a bi-monthly bill."
             },
             "active": {
               "type": "boolean",
-              "format": "boolean",
               "description": "If the bill is active."
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "object_group_id": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
+              "nullable": true,
               "description": "The group ID of the group this object is part of. NULL if no group."
             },
             "object_group_title": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
+              "type": "string",
+              "nullable": true,
               "description": "The name of the group. NULL if no group."
             }
           },
@@ -1993,12 +1894,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -2008,12 +1909,10 @@ export const generatedTools: McpToolDefinition[] = [
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD, to limit the result list.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD, to limit the result list.\n"
         },
         "type": {
@@ -2170,12 +2069,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -2258,12 +2157,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         }
@@ -2339,33 +2238,26 @@ export const generatedTools: McpToolDefinition[] = [
               "format": "date-time"
             },
             "name": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "native_currency_id": {
               "type": "string",
-              "format": "string",
               "description": "The administration's native currency ID."
             },
             "native_currency_code": {
               "type": "string",
-              "format": "string",
               "description": "The administration's native currency code."
             },
             "native_currency_symbol": {
               "type": "string",
-              "format": "string",
               "description": "The administration's native currency symbol."
             },
             "native_currency_decimal_places": {
-              "type": "number",
+              "type": "integer",
               "format": "int32",
               "description": "The administration's native currency decimal places."
             },
@@ -2375,25 +2267,21 @@ export const generatedTools: McpToolDefinition[] = [
                 "type": "object",
                 "properties": {
                   "currency_id": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_code": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_symbol": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_decimal_places": {
-                    "type": "number",
+                    "type": "integer",
                     "format": "int32",
                     "description": "Number of decimals supported by the currency"
                   },
                   "sum": {
                     "type": "string",
-                    "format": "amount",
                     "description": "The amount spent."
                   }
                 }
@@ -2405,25 +2293,21 @@ export const generatedTools: McpToolDefinition[] = [
                 "type": "object",
                 "properties": {
                   "currency_id": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_code": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_symbol": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_decimal_places": {
-                    "type": "number",
+                    "type": "integer",
                     "format": "int32",
                     "description": "Number of decimals supported by the currency"
                   },
                   "sum": {
                     "type": "string",
-                    "format": "amount",
                     "description": "The amount earned."
                   }
                 }
@@ -2467,12 +2351,10 @@ export const generatedTools: McpToolDefinition[] = [
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD, to show spent and earned info.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD, to show spent and earned info.\n"
         }
       },
@@ -2560,15 +2442,11 @@ export const generatedTools: McpToolDefinition[] = [
           ],
           "properties": {
             "name": {
-              "type": "string",
-              "format": "string"
+              "type": "string"
             },
             "notes": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             }
           },
           "description": "JSON array with updated category information. See the model for the exact specifications."
@@ -2668,18 +2546,17 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
         "tag": {
           "type": "string",
-          "format": "string",
           "description": "Either the tag itself or the tag ID."
         }
       },
@@ -2758,28 +2635,25 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
         "tag": {
           "type": "string",
-          "format": "string",
           "description": "Either the tag itself or the tag ID."
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. This is the start date of the selected range (inclusive).\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. This is the end date of the selected range (inclusive).\n"
         },
         "type": {
@@ -2937,12 +2811,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         }
@@ -3012,46 +2886,33 @@ export const generatedTools: McpToolDefinition[] = [
           "properties": {
             "tag": {
               "type": "string",
-              "format": "string",
               "description": "The tag"
             },
             "date": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "date",
-              "description": "The date to which the tag is applicable."
+              "type": "string",
+              "description": "The date to which the tag is applicable.",
+              "nullable": true
             },
             "description": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "latitude": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "number",
               "format": "double",
+              "nullable": true,
               "description": "Latitude of the tag's location, if applicable. Can be used to draw a map."
             },
             "longitude": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "number",
               "format": "double",
+              "nullable": true,
               "description": "Latitude of the tag's location, if applicable. Can be used to draw a map."
             },
             "zoom_level": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
+              "nullable": true,
               "description": "Zoom level for the map, if drawn. This to set the box right. Unfortunately this is a proprietary value because each map provider has different zoom levels."
             }
           },
@@ -3087,18 +2948,17 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
         "tag": {
           "type": "string",
-          "format": "string",
           "description": "Either the tag itself or the tag ID. If you use the tag itself, and it contains international (non-ASCII) characters, your milage may vary."
         }
       },
@@ -3178,7 +3038,6 @@ export const generatedTools: McpToolDefinition[] = [
       "properties": {
         "tag": {
           "type": "string",
-          "format": "string",
           "description": "Either the tag itself or the tag ID. If you use the tag itself, and it contains international (non-ASCII) characters, your milage may vary."
         },
         "requestBody": {
@@ -3187,46 +3046,33 @@ export const generatedTools: McpToolDefinition[] = [
           "properties": {
             "tag": {
               "type": "string",
-              "format": "string",
               "description": "The tag"
             },
             "date": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "date",
-              "description": "The date to which the tag is applicable."
+              "type": "string",
+              "description": "The date to which the tag is applicable.",
+              "nullable": true
             },
             "description": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string"
+              "type": "string",
+              "nullable": true
             },
             "latitude": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "number",
               "format": "double",
+              "nullable": true,
               "description": "Latitude of the tag's location, if applicable. Can be used to draw a map."
             },
             "longitude": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "number",
               "format": "double",
+              "nullable": true,
               "description": "Latitude of the tag's location, if applicable. Can be used to draw a map."
             },
             "zoom_level": {
-              "type": [
-                "number",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
+              "nullable": true,
               "description": "Zoom level for the map, if drawn. This to set the box right. Unfortunately this is a proprietary value because each map provider has different zoom levels."
             }
           },
@@ -3281,7 +3127,6 @@ export const generatedTools: McpToolDefinition[] = [
       "properties": {
         "tag": {
           "type": "string",
-          "format": "string",
           "description": "Either the tag itself or the tag ID. If you use the tag itself, and it contains international (non-ASCII) characters, your milage may vary."
         }
       },
@@ -3330,12 +3175,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -3514,12 +3359,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -3602,12 +3447,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -3690,23 +3535,21 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. This is the start date of the selected range (inclusive).\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD. This is the end date of the selected range (inclusive).\n"
         },
         "type": {
@@ -3853,27 +3696,21 @@ export const generatedTools: McpToolDefinition[] = [
           "properties": {
             "error_if_duplicate_hash": {
               "type": "boolean",
-              "format": "boolean",
               "description": "Break if the submitted transaction exists already."
             },
             "apply_rules": {
               "type": "boolean",
-              "format": "boolean",
               "description": "Whether or not to apply rules when submitting transaction."
             },
             "fire_webhooks": {
               "type": "boolean",
-              "format": "boolean",
               "default": true,
               "description": "Whether or not to fire the webhooks that are related to this event."
             },
             "group_title": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
-              "description": "Title of the transaction if it has been split in more than one piece. Empty otherwise."
+              "type": "string",
+              "description": "Title of the transaction if it has been split in more than one piece. Empty otherwise.",
+              "nullable": true
             },
             "transactions": {
               "type": "array",
@@ -3888,7 +3725,6 @@ export const generatedTools: McpToolDefinition[] = [
                 "properties": {
                   "type": {
                     "type": "string",
-                    "format": "string",
                     "enum": [
                       "withdrawal",
                       "deposit",
@@ -3904,319 +3740,210 @@ export const generatedTools: McpToolDefinition[] = [
                   },
                   "amount": {
                     "type": "string",
-                    "format": "amount",
                     "description": "Amount of the transaction."
                   },
                   "description": {
                     "type": "string",
-                    "format": "string",
                     "description": "Description of the transaction."
                   },
                   "order": {
-                    "type": [
-                      "number",
-                      "null"
-                    ],
+                    "type": "integer",
                     "format": "int32",
+                    "nullable": true,
                     "description": "Order of this entry in the list of transactions."
                   },
                   "currency_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Currency ID. Default is the source account's currency, or the user's default currency. The value you submit may be overruled by the source or destination account."
                   },
                   "currency_code": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Currency code. Default is the source account's currency, or the user's default currency. The value you submit may be overruled by the source or destination account."
                   },
                   "foreign_amount": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "amount",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The amount in a foreign currency."
                   },
                   "foreign_currency_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Currency ID of the foreign currency. Default is null. Is required when you submit a foreign amount."
                   },
                   "foreign_currency_code": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "Currency code of the foreign currency. Default is NULL. Can be used instead of the foreign_currency_id, but this or the ID is required when submitting a foreign amount."
+                    "type": "string",
+                    "description": "Currency code of the foreign currency. Default is NULL. Can be used instead of the foreign_currency_id, but this or the ID is required when submitting a foreign amount.",
+                    "nullable": true
                   },
                   "budget_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The budget ID for this transaction."
                   },
                   "budget_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "The name of the budget to be used. If the budget name is unknown, the ID will be used or the value will be ignored."
+                    "type": "string",
+                    "description": "The name of the budget to be used. If the budget name is unknown, the ID will be used or the value will be ignored.",
+                    "nullable": true
                   },
                   "category_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The category ID for this transaction."
                   },
                   "category_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The name of the category to be used. If the category is unknown, it will be created. If the ID and the name point to different categories, the ID overrules the name."
                   },
                   "source_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "ID of the source account. For a withdrawal or a transfer, this must always be an asset account. For deposits, this must be a revenue account."
                   },
                   "source_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Name of the source account. For a withdrawal or a transfer, this must always be an asset account. For deposits, this must be a revenue account. Can be used instead of the source_id. If the transaction is a deposit, the source_name can be filled in freely: the account will be created based on the name."
                   },
                   "destination_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "ID of the destination account. For a deposit or a transfer, this must always be an asset account. For withdrawals this must be an expense account."
                   },
                   "destination_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Name of the destination account. You can submit the name instead of the ID. For everything except transfers, the account will be auto-generated if unknown, so submitting a name is enough."
                   },
                   "reconciled": {
                     "type": "boolean",
-                    "format": "boolean",
                     "description": "If the transaction has been reconciled already. When you set this, the amount can no longer be edited by the user."
                   },
                   "piggy_bank_id": {
-                    "type": [
-                      "number",
-                      "null"
-                    ],
+                    "type": "integer",
                     "format": "int32",
-                    "description": "Optional. Use either this or the piggy_bank_name"
+                    "description": "Optional. Use either this or the piggy_bank_name",
+                    "nullable": true
                   },
                   "piggy_bank_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "Optional. Use either this or the piggy_bank_id"
+                    "type": "string",
+                    "description": "Optional. Use either this or the piggy_bank_id",
+                    "nullable": true
                   },
                   "bill_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Optional. Use either this or the bill_name"
                   },
                   "bill_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Optional. Use either this or the bill_id"
                   },
                   "tags": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": "array",
+                    "nullable": true,
                     "description": "Array of tags.",
                     "items": {
                       "type": "string",
-                      "format": "string",
                       "description": "Tag."
                     }
                   },
                   "notes": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "internal_reference": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Reference to internal reference of other systems."
                   },
                   "external_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Reference to external ID in other systems."
                   },
                   "external_url": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "External, custom URL for this transaction."
                   },
                   "bunq_payment_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Internal ID of bunq transaction. Field is no longer used but still works."
                   },
                   "sepa_cc": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Clearing Code"
                   },
                   "sepa_ct_op": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "SEPA Opposing Account Identifier"
+                    "type": "string",
+                    "description": "SEPA Opposing Account Identifier",
+                    "nullable": true
                   },
                   "sepa_ct_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA end-to-end Identifier"
                   },
                   "sepa_db": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA mandate identifier"
                   },
                   "sepa_country": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Country"
                   },
                   "sepa_ep": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA External Purpose indicator"
                   },
                   "sepa_ci": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Creditor Identifier"
                   },
                   "sepa_batch_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Batch ID"
                   },
                   "interest_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "book_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "process_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "due_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "payment_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "invoice_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   }
                 }
               }
@@ -4310,22 +4037,17 @@ export const generatedTools: McpToolDefinition[] = [
           "properties": {
             "apply_rules": {
               "type": "boolean",
-              "format": "boolean",
               "description": "Whether or not to apply rules when submitting transaction."
             },
             "fire_webhooks": {
               "type": "boolean",
-              "format": "boolean",
               "default": true,
               "description": "Whether or not to fire the webhooks that are related to this event."
             },
             "group_title": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "string",
-              "description": "Title of the transaction if it has been split in more than one piece. Empty otherwise."
+              "type": "string",
+              "description": "Title of the transaction if it has been split in more than one piece. Empty otherwise.",
+              "nullable": true
             },
             "transactions": {
               "type": "array",
@@ -4334,12 +4056,10 @@ export const generatedTools: McpToolDefinition[] = [
                 "properties": {
                   "transaction_journal_id": {
                     "type": "string",
-                    "format": "string",
                     "description": "Transaction journal ID of current transaction (split)."
                   },
                   "type": {
                     "type": "string",
-                    "format": "string",
                     "enum": [
                       "withdrawal",
                       "deposit",
@@ -4355,345 +4075,228 @@ export const generatedTools: McpToolDefinition[] = [
                   },
                   "amount": {
                     "type": "string",
-                    "format": "amount",
                     "description": "Amount of the transaction."
                   },
                   "description": {
                     "type": "string",
-                    "format": "string",
                     "description": "Description of the transaction."
                   },
                   "order": {
-                    "type": [
-                      "number",
-                      "null"
-                    ],
+                    "type": "integer",
                     "format": "int32",
+                    "nullable": true,
                     "description": "Order of this entry in the list of transactions."
                   },
                   "currency_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Currency ID. Default is the source account's currency, or the user's default currency. Can be used instead of currency_code."
                   },
                   "currency_code": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Currency code. Default is the source account's currency, or the user's default currency. Can be used instead of currency_id."
                   },
                   "currency_symbol": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_name": {
-                    "type": "string",
-                    "format": "string"
+                    "type": "string"
                   },
                   "currency_decimal_places": {
-                    "type": "number",
+                    "type": "integer",
                     "format": "int32",
                     "description": "Number of decimals used in this currency."
                   },
                   "foreign_amount": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "amount",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The amount in a foreign currency."
                   },
                   "foreign_currency_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Currency ID of the foreign currency. Default is null. Is required when you submit a foreign amount."
                   },
                   "foreign_currency_code": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "Currency code of the foreign currency. Default is NULL. Can be used instead of the foreign_currency_id, but this or the ID is required when submitting a foreign amount."
+                    "type": "string",
+                    "description": "Currency code of the foreign currency. Default is NULL. Can be used instead of the foreign_currency_id, but this or the ID is required when submitting a foreign amount.",
+                    "nullable": true
                   },
                   "foreign_currency_symbol": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "foreign_currency_decimal_places": {
-                    "type": [
-                      "number",
-                      "null"
-                    ],
+                    "type": "integer",
                     "format": "int32",
-                    "description": "Number of decimals in the currency"
+                    "description": "Number of decimals in the currency",
+                    "nullable": true
                   },
                   "budget_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The budget ID for this transaction."
                   },
                   "budget_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "The name of the budget to be used. If the budget name is unknown, the ID will be used or the value will be ignored."
+                    "type": "string",
+                    "description": "The name of the budget to be used. If the budget name is unknown, the ID will be used or the value will be ignored.",
+                    "nullable": true
                   },
                   "category_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The category ID for this transaction."
                   },
                   "category_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "The name of the category to be used. If the category is unknown, it will be created. If the ID and the name point to different categories, the ID overrules the name."
                   },
                   "source_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "ID of the source account. For a withdrawal or a transfer, this must always be an asset account. For deposits, this must be a revenue account."
                   },
                   "source_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Name of the source account. For a withdrawal or a transfer, this must always be an asset account. For deposits, this must be a revenue account. Can be used instead of the source_id. If the transaction is a deposit, the source_name can be filled in freely: the account will be created based on the name."
                   },
                   "source_iban": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "destination_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "ID of the destination account. For a deposit or a transfer, this must always be an asset account. For withdrawals this must be an expense account."
                   },
                   "destination_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Name of the destination account. You can submit the name instead of the ID. For everything except transfers, the account will be auto-generated if unknown, so submitting a name is enough."
                   },
                   "destination_iban": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "reconciled": {
                     "type": "boolean",
-                    "format": "boolean",
                     "description": "If the transaction has been reconciled already. When you set this, the amount can no longer be edited by the user."
                   },
                   "bill_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Optional. Use either this or the bill_name"
                   },
                   "bill_name": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Optional. Use either this or the bill_id"
                   },
                   "tags": {
-                    "type": [
-                      "array",
-                      "null"
-                    ],
+                    "type": "array",
+                    "nullable": true,
                     "description": "Array of tags.",
                     "items": {
                       "type": "string",
-                      "format": "string",
                       "description": "Tag."
                     }
                   },
                   "notes": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "internal_reference": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Reference to internal reference of other systems."
                   },
                   "external_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Reference to external ID in other systems."
                   },
                   "external_url": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "External, custom URL for this transaction."
                   },
                   "bunq_payment_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "Internal ID of bunq transaction."
                   },
                   "sepa_cc": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Clearing Code"
                   },
                   "sepa_ct_op": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
-                    "description": "SEPA Opposing Account Identifier"
+                    "type": "string",
+                    "description": "SEPA Opposing Account Identifier",
+                    "nullable": true
                   },
                   "sepa_ct_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA end-to-end Identifier"
                   },
                   "sepa_db": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA mandate identifier"
                   },
                   "sepa_country": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Country"
                   },
                   "sepa_ep": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA External Purpose indicator"
                   },
                   "sepa_ci": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Creditor Identifier"
                   },
                   "sepa_batch_id": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "string",
+                    "type": "string",
+                    "nullable": true,
                     "description": "SEPA Batch ID"
                   },
                   "interest_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "book_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "process_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "due_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "payment_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   },
                   "invoice_date": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "date-time"
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
                   }
                 }
               }
@@ -4796,12 +4399,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -4979,12 +4582,12 @@ export const generatedTools: McpToolDefinition[] = [
       "type": "object",
       "properties": {
         "limit": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Number of items per page. The default pagination is per 50 items."
         },
         "page": {
-          "type": "number",
+          "type": "integer",
           "format": "int32",
           "description": "Page number. The default pagination is per 50 items."
         },
@@ -5068,17 +4671,14 @@ export const generatedTools: McpToolDefinition[] = [
       "properties": {
         "start": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD.\n"
         },
         "end": {
           "type": "string",
-          "format": "date",
           "description": "A date formatted YYYY-MM-DD.\n"
         },
         "currency_code": {
           "type": "string",
-          "format": "string",
           "description": "A currency code like EUR or USD, to filter the result.\n"
         }
       },

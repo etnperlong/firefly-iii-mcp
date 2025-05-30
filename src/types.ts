@@ -29,7 +29,7 @@ export interface McpToolDefinition {
   /** Human-readable description of the tool */
   description: string;
   /** JSON Schema that defines the input parameters */
-  inputSchema: JSONSchema7 | boolean;
+  inputSchema: OpenAPIV3.SchemaObject | JSONSchema7 | boolean;
   /** HTTP method for the operation (get, post, etc.) */
   method: string;
   /** URL path template with parameter placeholders */
