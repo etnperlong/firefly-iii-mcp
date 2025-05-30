@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Firefly III MCP! This project use
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/firefly-iii-mcp.git
+   git clone https://github.com/etnperlong/firefly-iii-mcp.git
    cd firefly-iii-mcp
    ```
 

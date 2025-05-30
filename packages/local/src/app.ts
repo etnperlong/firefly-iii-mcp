@@ -22,14 +22,14 @@ export class FireflyIIIMcpServer {
   constructor() {
     // Get pat from command line args
     const patArgIndex = process.argv.indexOf('--pat');
-    const pat = patArgIndex !== -1 ? process.argv[patArgIndex + 1] : process.env.PAT;
+    const pat = patArgIndex !== -1 ? process.argv[patArgIndex + 1] : process.env.FIREFLY_III_PAT;
     const baseUrlArgIndex = process.argv.indexOf('--baseUrl');
-    const baseUrl = baseUrlArgIndex !== -1 ? process.argv[baseUrlArgIndex + 1] : process.env.BASE_URL;
+    const baseUrl = baseUrlArgIndex !== -1 ? process.argv[baseUrlArgIndex + 1] : process.env.FIREFLY_III_BASE_URL;
     
     if (!pat || !baseUrl) {
-      console.error('Error: PAT and BASE_URL are required for running MCP server locally');
-      console.error('Usage: firefly-iii-mcp --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL');
-      console.error('Or set PAT and BASE_URL environment variables in a .env file');
+      console.error('Error: FIREFLY_III_PAT and FIREFLY_III_BASE_URL are required for running MCP server locally');
+      console.error('Usage: firefly-iii-mcp --pat FIREFLY_III_PAT --baseUrl FIREFLY_III_BASE_URL');
+      console.error('Or set FIREFLY_III_PAT and FIREFLY_III_BASE_URL environment variables in a .env file');
       process.exit(1);
     }
     

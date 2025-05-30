@@ -37,11 +37,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/firefly-iii-mcp.git"
+    "url": "https://github.com/etnperlong/firefly-iii-mcp.git"
   },
-  "homepage": "https://github.com/yourusername/firefly-iii-mcp#readme",
+  "homepage": "https://github.com/etnperlong/firefly-iii-mcp#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/firefly-iii-mcp/issues"
+    "url": "https://github.com/etnperlong/firefly-iii-mcp/issues"
   },
   "keywords": [
     "firefly-iii",
