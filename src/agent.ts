@@ -9,7 +9,7 @@ import { generatedTools } from './generated/tools';
 export class FireflyIIIAgent extends McpAgent<Env, {}, UpstreamConfig> {
   server = new Server({
     name: 'Firefly III MCP Agent',
-    version: '1.2.0',
+    version: '1.2.1',
   }, {
     capabilities: { tools: {} }
   })

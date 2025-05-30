@@ -1,6 +1,6 @@
 {
   "name": "firefly-iii-mcp",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MCP Server for Firefly III: a free, open-source personal finance manager.",
   "scripts": {
     "dev": "wrangler dev",
