@@ -34,20 +34,20 @@ export class FireflyIIIAgent extends McpAgent<Env, {}, UpstreamConfig> {
         const errors = validatedResult.errors;
         return {
           content: [{
-            type: 'text', text: {
+            type: 'text', text: JSON.stringify({
               message: `Invalid arguments for tool '${toolName}'`,
               errors: errors,
-            }
+            }, null, 2)
           }]
         };
       }
     } catch (error: unknown) {
       return {
         content: [{
-          type: 'text', text: {
+          type: 'text', text: JSON.stringify({
             message: `Error validating arguments for tool '${toolName}'`,
             error: error,
-          }
+          }, null, 2)
         }]
       }
     }
@@ -109,10 +109,10 @@ export class FireflyIIIAgent extends McpAgent<Env, {}, UpstreamConfig> {
       const errorText = await response.text();
       return {
         content: [{
-          type: 'text', text: {
+          type: 'text', text: JSON.stringify({
             message: `Error executing tool '${toolName}': ${response.status} ${response.statusText}`,
             error: errorText,
-          }
+          }, null, 2)
         }]
       }
     }
@@ -137,10 +137,10 @@ export class FireflyIIIAgent extends McpAgent<Env, {}, UpstreamConfig> {
     // Default to text response for unsupported types
     return {
       content: [{
-        type: 'text', text: {
+          type: 'text', text: JSON.stringify({
           error: `Unsupported response type: ${responseType}`,
           message: `Unsupported response type: ${responseType}`,
-        }
+        }, null, 2)
       }]
     }
   }
@@ -158,10 +158,14 @@ export class FireflyIIIAgent extends McpAgent<Env, {}, UpstreamConfig> {
         return { tools: [unauthorizedTool] }
       })
       this.server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest): Promise<CallToolResult> => {
-        return { content: [{ type: "text", text: {
-          error: 'Unauthorized',
-          message: 'Please contact your administrator to get access to this tool',
-        } }] };
+        return {
+          content: [{
+            type: "text", text: JSON.stringify({
+              error: 'Unauthorized',
+              message: 'Please contact your administrator to get access to this tool',
+            }, null, 2)
+          }]
+        };
       });
     } else {
       this.server.setRequestHandler(ListToolsRequestSchema, async () => {
