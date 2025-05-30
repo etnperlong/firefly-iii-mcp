@@ -1,9 +1,9 @@
 import { Context } from "hono";
-import { UpstreamConfig } from "./types";
+import { McpServerConfig } from "@firefly-iii-mcp/core";
 
-export const getUpstreamConfig = (c: Context<{
+export const getMcpServerConfig = (c: Context<{
   Bindings: Env;
-}>): UpstreamConfig => {
+}>): McpServerConfig => {
   /** Token */
   const patInQuery = c.req.query('pat');
   const patInHeader = c.req.header('Authorization')?.split(' ')[1];

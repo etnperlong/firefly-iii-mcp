@@ -65,7 +65,38 @@ You need to provide the Firefly III PAT and your Firefly III instance URL to the
 
 ## Running the MCP Server
 
-### Deploy to Cloudflare Workers (Recommended)
+### Using NPM Package (Easiest)
+
+You can run the MCP server locally using the npm package:
+
+```bash
+# Install globally
+npm install -g @firefly-iii-mcp/local
+
+# Run with your Firefly III URL and PAT
+firefly-iii-mcp --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
+```
+
+Or use it directly with npx:
+
+```bash
+npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
+```
+
+You can also create a `.env` file with your PAT and BASE_URL:
+
+```
+PAT=YOUR_PAT
+BASE_URL=YOUR_FIREFLY_III_URL
+```
+
+And then run:
+
+```bash
+npx @firefly-iii-mcp/local
+```
+
+### Deploy to Cloudflare Workers (Recommended for Production)
 
 You can easily deploy this MCP server to Cloudflare Workers using the button below:
 
@@ -79,10 +110,10 @@ You can easily deploy this MCP server to Cloudflare Workers using the button bel
 4.  Go to Settings > Variables.
 5.  Add the `FIREFLY_III_BASE_URL` and `FIREFLY_III_PAT` as secret variables.
 
-### Run the MCP Server Locally
+### Run the MCP Server Locally from Source
 
 > [!NOTE]
-> For production use, it is recommended that the MCP server is deployed to Cloudflare Workers.
+> For production use, it is recommended to use the NPM package or deploy to Cloudflare Workers.
 
 1.  Clone the repository:
     ```bash

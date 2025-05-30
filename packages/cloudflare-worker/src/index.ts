@@ -3,7 +3,7 @@ import { logger } from 'hono/logger'
 import { cors } from 'hono/cors';
 
 import { FireflyIIIAgent } from './agent';
-import { getUpstreamConfig } from './config';
+import { getMcpServerConfig } from './config';
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -11,7 +11,7 @@ app.use(logger())
 app.use('*', cors());
 // Streamable MCP Server
 app.use("/mcp", (c) => {
-  const config = getUpstreamConfig(c);
+  const config = getMcpServerConfig(c);
   const agentContext = {
     ...c.executionCtx,
     props: config,
@@ -22,7 +22,7 @@ app.use("/mcp", (c) => {
 
 // SSE MCP Server
 app.use("/sse*", (c) => {
-  const config = getUpstreamConfig(c);
+  const config = getMcpServerConfig(c);
   const agentContext = {
     ...c.executionCtx,
     props: config,

@@ -5,14 +5,9 @@ import type { OpenAPIV3 } from 'openapi-types';
 import type { JSONSchema7 } from 'json-schema';
 
 /**
- * Hono App Type
- */
-export type App = typeof import('./index').default;
-
-/**
  * Upstream Config
  */
-export type UpstreamConfig = {
+export type McpServerConfig = {
   baseUrl: string;
   pat: string;
 }
