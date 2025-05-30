@@ -4,7 +4,7 @@
   "description": "Run Firefly III MCP server locally",
   "type": "module",
   "bin": {
-    "firefly-iii-mcp": "./dist/app.js"
+    "firefly-iii-mcp": "dist/app.js"
   },
   "private": false,
   "files": [
@@ -38,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/etnperlong/firefly-iii-mcp.git"
+    "url": "git+https://github.com/etnperlong/firefly-iii-mcp.git"
   },
   "homepage": "https://github.com/etnperlong/firefly-iii-mcp#readme",
   "bugs": {
