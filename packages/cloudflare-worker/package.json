@@ -1,6 +1,6 @@
 {
   "name": "@firefly-iii-mcp/cloudflare-worker",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "One-click deploy firefly-iii-mcp to Cloudflare Worker edge.",
   "type": "module",
   "private": true,
@@ -14,7 +14,7 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "@firefly-iii-mcp/core": "1.3.0",
+    "@firefly-iii-mcp/core": "1.3.1",
     "agents": "^0.0.94",
     "hono": "^4.7.11"
   },
