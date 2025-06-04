@@ -11,6 +11,7 @@ This project uses a Turborepo-managed monorepo structure, containing the followi
 * **@firefly-iii-mcp/core** - Core functionality module providing the foundation for interacting with the Firefly III API
 * **@firefly-iii-mcp/local** - Command-line tool for running the MCP server locally
 * **@firefly-iii-mcp/cloudflare-worker** - Implementation for deployment to Cloudflare Workers
+* **@firefly-iii-mcp/server** - Express-based server implementation with Streamable HTTP and SSE support
 
 ## Features
 
@@ -101,7 +102,47 @@ You can also refer to the [official tutorial](https://modelcontextprotocol.io/qu
 }
 ```
 
-### Method 2: Deploy to Cloudflare Workers (Recommended for Production)
+### Method 2: Express Server (Recommended for Web Apps)
+
+This method provides an HTTP-based server with Streamable HTTP and SSE support, making it ideal for web applications.
+
+#### As a Command-Line Tool
+
+```bash
+npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
+```
+
+Command-line options:
+- `-p, --pat <token>` - Firefly III Personal Access Token
+- `-b, --baseUrl <url>` - Firefly III Base URL
+- `-P, --port <number>` - Port to listen on (default: 3000)
+- `-l, --logLevel <level>` - Log level: debug, info, warn, error (default: info)
+
+#### As a Library
+
+```bash
+npm install @firefly-iii-mcp/server
+```
+
+Basic usage:
+
+```typescript
+import { createServer } from '@firefly-iii-mcp/server';
+
+const server = createServer({
+  port: 3000,
+  pat: process.env.FIREFLY_III_PAT,
+  baseUrl: process.env.FIREFLY_III_BASE_URL
+});
+
+server.start().then(() => {
+  console.log('MCP Server is running on http://localhost:3000');
+});
+```
+
+For more details, see the [@firefly-iii-mcp/server documentation](packages/server/README.md).
+
+### Method 3: Deploy to Cloudflare Workers (Recommended for Production)
 
 You can easily deploy this MCP server to Cloudflare Workers using the button below:
 
@@ -115,7 +156,7 @@ You can easily deploy this MCP server to Cloudflare Workers using the button bel
 4. Go to Settings > Variables
 5. Add `FIREFLY_III_BASE_URL` and `FIREFLY_III_PAT` as secret variables
 
-### Method 3: Run Locally from Source
+### Method 4: Run Locally from Source
 
 > [!NOTE]
 > For production use, it is recommended to use the NPM package or deploy to Cloudflare Workers.

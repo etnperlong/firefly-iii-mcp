@@ -1,6 +1,6 @@
 {
   "name": "@firefly-iii-mcp/core",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "core modules for Firefly III MCP server",
   "type": "module",
   "private": false,
@@ -50,7 +50,7 @@
     "personal-finance",
     "api"
   ],
-  "author": "Your Name",
+  "author": "Evans Mike",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

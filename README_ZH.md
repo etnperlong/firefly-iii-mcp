@@ -1,8 +1,17 @@
-# Firefly III MCP Server
+# Firefly III MCP 服务器
 
-这是一个为 Firefly III（一款免费开源的个人财务管理工具）开发的 MCP（Model Context Protocol）服务器。通过这个 MCP 服务器，用户可以利用 AI 工具来管理他们的 Firefly III 账户和交易记录，从而实现个人理财和会计的 AI 助手功能。
+这是一个用于 Firefly III 的 Model Context Protocol (MCP) 服务器，Firefly III 是一款免费开源的个人财务管理工具。通过这个 MCP 服务器，用户可以利用 AI 工具来管理他们的 Firefly III 账户和交易，创建个人财务和会计的 AI 助手。
 
 *[English](README.md)*
+
+## 项目结构
+
+这个项目使用 Turborepo 管理的 monorepo 结构，包含以下主要包：
+
+* **@firefly-iii-mcp/core** - 提供与 Firefly III API 交互基础的核心功能模块
+* **@firefly-iii-mcp/local** - 用于在本地运行 MCP 服务器的命令行工具
+* **@firefly-iii-mcp/cloudflare-worker** - 用于部署到 Cloudflare Workers 的实现方案
+* **@firefly-iii-mcp/server** - 基于 Express 的服务器实现，支持 Streamable HTTP 和 SSE
 
 ## 功能特点
 
@@ -65,9 +74,8 @@ FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
 
 ## 运行 MCP 服务器
 
-### 方式 1: 本地模式运行
-
-这种方式适合支持以 标准输入/输出（stdio）调用 MCP 工具的客户端，如 [Claude Desktop](https://claude.ai/download)。
+### 方式一：本地模式
+这种方式适用于支持通过标准输入输出（stdio）调用 MCP 工具的客户端，如 [Claude Desktop](https://claude.ai/download)。
 
 基本运行命令：
 
@@ -75,7 +83,7 @@ FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
 npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 ```
 
-也可以参考 [官方教程](https://modelcontextprotocol.io/quickstart/user) 以 JSON 格式进行配置。
+您也可以参考 [官方教程](https://modelcontextprotocol.io/quickstart/user) 了解 JSON 格式的配置方式。
 
 ```json
 {
@@ -85,28 +93,73 @@ npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
       "args": [
         "@firefly-iii-mcp/local",
         "--pat",
-        "<Your Firefly III Personal Access Token>",
+        "<您的 Firefly III 个人访问令牌>",
         "--baseUrl",
-        "<Your Firefly III Base URL>"
+        "<您的 Firefly III 基础 URL>"
       ]
     }
   }
 }
 ```
 
-### 方式 2: 部署到 Cloudflare Workers（推荐用于生产环境）
+### 方式二：Express 服务器（推荐用于网页应用）
 
-您可以使用以下按钮轻松地将此 MCP 服务器部署到 Cloudflare Workers：
+这种方式提供了一个基于 HTTP 的服务器，支持 Streamable HTTP 和 SSE，非常适合网页应用使用。
+
+#### 作为命令行工具
+
+```bash
+npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
+```
+
+命令行选项：
+- `-p, --pat <token>` - Firefly III 个人访问令牌
+- `-b, --baseUrl <url>` - Firefly III 基础 URL
+- `-P, --port <number>` - 监听端口（默认：3000）
+- `-l, --logLevel <level>` - 日志级别：debug, info, warn, error（默认：info）
+
+#### 作为库使用
+
+```bash
+npm install @firefly-iii-mcp/server
+```
+
+基本用法：
+
+```typescript
+import { createServer } from '@firefly-iii-mcp/server';
+
+const server = createServer({
+  port: 3000,
+  pat: process.env.FIREFLY_III_PAT,
+  baseUrl: process.env.FIREFLY_III_BASE_URL
+});
+
+server.start().then(() => {
+  console.log('MCP 服务器运行于 http://localhost:3000');
+});
+```
+
+更多详情，请查看 [@firefly-iii-mcp/server 文档](packages/server/README_ZH.md)。
+
+### 方式三：部署到 Cloudflare Workers（推荐用于生产环境）
+
+您可以使用下面的按钮轻松将此 MCP 服务器部署到 Cloudflare Workers：
 
 [![部署到 Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/etnperlong/firefly-iii-mcp/tree/main/packages/cloudflare-worker)
 
-**注意：** 部署后，您需要在 Cloudflare Worker 设置中配置 `FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT` 环境变量：
+**注意：** 部署后，您需要在 Cloudflare Worker 的设置中配置 `FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT` 环境变量：
 
 1. 进入您的 Cloudflare 仪表板
 2. 导航至 Workers & Pages
 3. 选择您部署的 Worker
 4. 进入设置 > 变量
 5. 添加 `FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT` 作为秘密变量
+
+### 方式四：从源代码本地运行
+
+> [!NOTE]
+> 对于生产用途，建议使用 NPM 包或部署到 Cloudflare Workers。
 
 ## 开发指南
 
