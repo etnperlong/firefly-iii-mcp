@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
-    "@modelcontextprotocol/sdk": "1.12.0"
+    "@modelcontextprotocol/sdk": "1.12.0",
+    "@openapi-contrib/openapi-schema-to-json-schema": "^5.1.0"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",

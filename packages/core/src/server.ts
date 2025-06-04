@@ -9,6 +9,7 @@ import {
 import { CallToolRequestArguments, McpServerConfig, McpToolDefinition } from "./types.js";
 import { generatedTools } from "./tools.js";
 import { Schema, Validator } from "@cfworker/json-schema";
+import { openapiSchemaToJsonSchema } from "@openapi-contrib/openapi-schema-to-json-schema";
 
 export const executeApiTool = async (
   toolName: string,
@@ -19,8 +20,8 @@ export const executeApiTool = async (
   let validatedArgs: CallToolRequestArguments;
   try {
     // Validate arguments against the input schema
-    const schema = definition.inputSchema;
-    const validator = new Validator(schema, '7')
+    const schema = openapiSchemaToJsonSchema(definition.inputSchema);
+    const validator = new Validator(schema as Schema, '4')
     const argsToParse = (typeof toolArgs === 'object' && toolArgs !== null) ? toolArgs : {};
     const validatedResult = validator.validate(argsToParse);
     if (validatedResult.valid) {
