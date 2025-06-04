@@ -19,8 +19,9 @@
     "build:local": "turbo run build --filter=@firefly-iii-mcp/local",
     "publish:core": "npm publish --access public -w @firefly-iii-mcp/core",
     "publish:local": "npm publish --access public -w @firefly-iii-mcp/local",
-    "publish:all": "npm run build && npm run publish:core && npm run publish:local",
-    "prepublish:check": "npm run build && node -e \"console.log('Checking packages for publishing...')\" && npm pack -w @firefly-iii-mcp/core && npm pack -w @firefly-iii-mcp/local"
+    "publish:server": "npm publish --access public -w @firefly-iii-mcp/server",
+    "publish:all": "npm run build && npm run publish:core && npm run publish:local && npm run publish:server",
+    "prepublish:check": "npm run build && node -e \"console.log('Checking packages for publishing...')\" && npm pack -w @firefly-iii-mcp/core && npm pack -w @firefly-iii-mcp/local && npm pack -w @firefly-iii-mcp/server"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.4",
