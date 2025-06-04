@@ -2,7 +2,6 @@
  * Functions for extracting tools from an OpenAPI specification
  */
 import { OpenAPIV3 } from 'openapi-types';
-import type { JSONSchema7, JSONSchema7TypeName } from 'json-schema';
 import * as changeCase from 'change-case';
 import { McpToolDefinition } from '../../src/types';
 
@@ -15,7 +14,6 @@ import { McpToolDefinition } from '../../src/types';
 export function extractToolsFromApi(api: OpenAPIV3.Document): McpToolDefinition[] {
   const tools: McpToolDefinition[] = [];
   const usedNames = new Set<string>();
-  const globalSecurity = api.security || [];
 
   if (!api.paths) return tools;
 
@@ -53,9 +51,6 @@ export function extractToolsFromApi(api: OpenAPIV3.Document): McpToolDefinition[
       const { inputSchema, parameters, requestBodyContentType } =
         generateInputSchemaAndDetails(operation);
 
-      // Filter Parameters
-      const filteredParameters = parameters.filter((p) => p.name !== 'X-Trace-Id');
-
       // Filter Input Schema
       if (typeof inputSchema === 'object' && inputSchema.properties) {
         delete inputSchema.properties['X-Trace-Id'];
@@ -63,11 +58,7 @@ export function extractToolsFromApi(api: OpenAPIV3.Document): McpToolDefinition[
 
       // Extract parameter details for execution
       const executionParameters = parameters.filter((p) => p.name !== 'X-Trace-Id')
-        .map((p) => ({ name: p.name, in: p.in }));
-
-      // Determine security requirements
-      const securityRequirements =
-        operation.security === null ? globalSecurity : operation.security || globalSecurity;
+        .map((p) => ({ name: p.name, in: p.in as 'path' | 'query' | 'header' }));
 
       // Create the tool definition
       tools.push({
@@ -77,10 +68,10 @@ export function extractToolsFromApi(api: OpenAPIV3.Document): McpToolDefinition[
         inputSchema,
         method,
         pathTemplate: path,
-        parameters: filteredParameters,
+        // parameters: filteredParameters,
         executionParameters,
         requestBodyContentType,
-        securityRequirements,
+        // securityRequirements,
         operationId: baseName,
       });
     }
@@ -96,11 +87,11 @@ export function extractToolsFromApi(api: OpenAPIV3.Document): McpToolDefinition[
  * @returns Input schema, parameters, and request body content type
  */
 export function generateInputSchemaAndDetails(operation: OpenAPIV3.OperationObject): {
-  inputSchema: JSONSchema7 | boolean;
+  inputSchema: OpenAPIV3.SchemaObject;
   parameters: OpenAPIV3.ParameterObject[];
   requestBodyContentType?: string;
 } {
-  const properties: { [key: string]: JSONSchema7 | boolean } = {};
+  const properties: { [key: string]: OpenAPIV3.SchemaObject } = {};
   const required: string[] = [];
 
   // Process parameters
@@ -155,7 +146,7 @@ export function generateInputSchemaAndDetails(operation: OpenAPIV3.OperationObje
   }
 
   // Combine everything into a JSON Schema
-  const inputSchema: JSONSchema7 = {
+  const inputSchema: OpenAPIV3.SchemaObject = {
     type: 'object',
     properties,
     ...(required.length > 0 && { required }),
@@ -172,7 +163,7 @@ export function generateInputSchemaAndDetails(operation: OpenAPIV3.OperationObje
  */
 export function mapOpenApiSchemaToJsonSchema(
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
-): JSONSchema7 | boolean {
+): OpenAPIV3.SchemaObject {
   // Handle reference objects
   if ('$ref' in schema) {
     // It's generally better to resolve references, but for now,
@@ -189,32 +180,10 @@ export function mapOpenApiSchemaToJsonSchema(
   }
 
   // Create a shallow copy to avoid modifying the original schema object
-  const jsonSchema: any = { ...schema };
-
-  // OpenAPI specific keywords to remove.
-  // 'discriminator' is also OpenAPI specific but might be handled differently
-  // if you plan to support polymorphism in a specific way with JSON Schema.
-  const OMIT_KEYWORDS = [
-    // 'nullable',
-    'example',
-    'xml',
-    'externalDocs',
-    'deprecated',
-    'readOnly',
-    'writeOnly',
-    'discriminator',
-    // 'example' is listed again as it might appear at different levels
-    // and we want to be thorough.
-    'examples', // OpenAPI 3.0.x uses 'example', 3.1.x can use 'examples'
-    // 'format',
-  ];
-
-  for (const keyword of OMIT_KEYWORDS) {
-    delete jsonSchema[keyword];
-  }
+  const jsonSchema = schema;
 
   // Handle format for string types - only keep 'enum' and 'date-time' formats
-  if (jsonSchema.type && jsonSchema.format ) {
+  if (jsonSchema.type && jsonSchema.format) {
     switch (jsonSchema.type) {
       case 'string':
         if (jsonSchema.format !== 'date-time' && jsonSchema.format !== 'enum') {
@@ -242,19 +211,19 @@ export function mapOpenApiSchemaToJsonSchema(
   // Validate required fields against properties
   if (jsonSchema.required && Array.isArray(jsonSchema.required) && jsonSchema.properties) {
     const invalidRequiredFields = jsonSchema.required.filter(
-      (field: string) => !jsonSchema.properties[field]
+      (field: string) => !jsonSchema.properties?.[field]
     );
-    
+
     if (invalidRequiredFields.length > 0) {
       console.warn(
         `Schema has required fields that don't exist in properties: ${invalidRequiredFields.join(', ')}`
       );
-      
+
       // Filter out invalid required fields
       jsonSchema.required = jsonSchema.required.filter(
-        (field: string) => jsonSchema.properties[field]
+        (field: string) => jsonSchema.properties?.[field]
       );
-      
+
       // If no required fields left, remove the required property
       if (jsonSchema.required.length === 0) {
         delete jsonSchema.required;
@@ -262,97 +231,29 @@ export function mapOpenApiSchemaToJsonSchema(
     }
   }
 
-  // Convert OpenAPI 'integer' type to JSON Schema 'number' or 'integer'
-  // JSON Schema technically has 'integer', but 'number' is often more compatible
-  // if specific integer validation isn't strictly needed.
-  // For stricter adherence, you could keep it as 'integer'.
-  /*
-  if (jsonSchema.type === 'integer') {
-    jsonSchema.type = 'number'; // Broaden to number
-  }
-  */
-
-  // Handle OpenAPI 'nullable' property by adding 'null' to the type array
-  // This was previously deleted, but its effect (allowing null) needs to be translated.
-  /*
-  if (schema.nullable === true) {
-    if (Array.isArray(jsonSchema.type)) {
-      if (!jsonSchema.type.includes('null')) {
-        jsonSchema.type.push('null');
-      }
-    } else if (typeof jsonSchema.type === 'string') {
-      jsonSchema.type = [jsonSchema.type as JSONSchema7TypeName, 'null'];
-    } else if (!jsonSchema.type) {
-      // If type is not defined, and it's nullable, it implies it can be null.
-      // However, a schema usually has a type. This case might indicate an underspecified schema.
-      jsonSchema.type = 'null';
-    }
-  }
-  */
-
   // Recursively process nested schemas
   if (jsonSchema.properties) {
-    const mappedProps: { [key: string]: JSONSchema7 | boolean } = {};
+    const mappedProps: { [key: string]: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject } = {};
     for (const [key, propSchema] of Object.entries(jsonSchema.properties)) {
-      mappedProps[key] = mapOpenApiSchemaToJsonSchema(propSchema as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
+      mappedProps[key] = mapOpenApiSchemaToJsonSchema(propSchema);
     }
     jsonSchema.properties = mappedProps;
   }
 
-  if (jsonSchema.items) {
-    if (Array.isArray(jsonSchema.items)) {
-      jsonSchema.items = jsonSchema.items.map((itemSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) =>
-        mapOpenApiSchemaToJsonSchema(itemSchema)
-      );
-    } else {
-      jsonSchema.items = mapOpenApiSchemaToJsonSchema(jsonSchema.items as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
-    }
+  if (jsonSchema.type === 'array' && jsonSchema.items) {
+    jsonSchema.items = mapOpenApiSchemaToJsonSchema(jsonSchema.items);
   }
 
   const arrayKeywords = ['allOf', 'anyOf', 'oneOf'];
   for (const keyword of arrayKeywords) {
     if (Array.isArray(jsonSchema[keyword])) {
-      jsonSchema[keyword] = jsonSchema[keyword].map((subSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) =>
+      jsonSchema[keyword] = jsonSchema[keyword].map((subSchema: OpenAPIV3.SchemaObject) =>
         mapOpenApiSchemaToJsonSchema(subSchema)
       );
     }
   }
 
-  if (jsonSchema.not && typeof jsonSchema.not === 'object') {
-    jsonSchema.not = mapOpenApiSchemaToJsonSchema(jsonSchema.not as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
-  }
-
-  if (jsonSchema.additionalProperties && typeof jsonSchema.additionalProperties === 'object') {
-    // Check if it's not a boolean `true` or `false`
-    if (jsonSchema.additionalProperties !== true && jsonSchema.additionalProperties !== false) {
-      jsonSchema.additionalProperties = mapOpenApiSchemaToJsonSchema(
-        jsonSchema.additionalProperties as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
-      );
-    }
-  }
-
-  if (jsonSchema.patternProperties) {
-    const mappedPatternProps: { [key: string]: JSONSchema7 | boolean } = {};
-    for (const [pattern, patternSchema] of Object.entries(jsonSchema.patternProperties)) {
-      mappedPatternProps[pattern] = mapOpenApiSchemaToJsonSchema(patternSchema as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
-    }
-    jsonSchema.patternProperties = mappedPatternProps;
-  }
-
-  // JSON Schema draft 7 doesn't have 'definitions', it uses '$defs' typically for later drafts,
-  // or puts definitions at the root. If 'definitions' comes from OpenAPI,
-  // it's usually for reusable components which should have been resolved by the dereferencing step.
-  // If they are still present, they should also be mapped.
-  if (jsonSchema.definitions) {
-    const mappedDefs: { [key: string]: JSONSchema7 | boolean } = {};
-    for (const [key, defSchema] of Object.entries(jsonSchema.definitions)) {
-      mappedDefs[key] = mapOpenApiSchemaToJsonSchema(defSchema as OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject);
-    }
-    jsonSchema.definitions = mappedDefs;
-  }
-
-
-  return jsonSchema as JSONSchema7 | boolean;
+  return jsonSchema;
 }
 
 
@@ -366,7 +267,7 @@ export function titleCase(str: string): string {
   // Converts snake_case, kebab-case, or path/parts to TitleCase
   return str
     .toLowerCase()
-    .replace(/[-_\/](.)/g, (_, char) => char.toUpperCase()) // Handle separators
+    .replace(/[-_/](.)/g, (_, char) => char.toUpperCase()) // Handle separators
     .replace(/^{/, '') // Remove leading { from path params
     .replace(/}$/, '') // Remove trailing } from path params
     .replace(/^./, (char) => char.toUpperCase()); // Capitalize first letter

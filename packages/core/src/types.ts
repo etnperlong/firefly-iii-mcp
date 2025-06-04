@@ -2,7 +2,6 @@
  * Core type definitions for the openapi-to-mcp generator
  */
 import type { OpenAPIV3 } from 'openapi-types';
-import type { JSONSchema7 } from 'json-schema';
 
 /**
  * Upstream Config
@@ -10,6 +9,14 @@ import type { JSONSchema7 } from 'json-schema';
 export type McpServerConfig = {
   baseUrl: string;
   pat: string;
+}
+
+/** 
+ * Execution parameter for a tool
+ */
+export interface ExecutionParameter {
+  name: string;
+  in: 'path' | 'query' | 'header';
 }
 
 /**
@@ -24,27 +31,21 @@ export interface McpToolDefinition {
   /** Human-readable description of the tool */
   description: string;
   /** JSON Schema that defines the input parameters */
-  inputSchema: OpenAPIV3.SchemaObject | JSONSchema7 | boolean;
+  inputSchema: OpenAPIV3.SchemaObject;
   /** HTTP method for the operation (get, post, etc.) */
   method: string;
   /** URL path template with parameter placeholders */
   pathTemplate: string;
   /** OpenAPI parameter objects for this operation */
-  parameters: OpenAPIV3.ParameterObject[];
+  // parameters: OpenAPIV3.ParameterObject[];
   /** Parameter names and locations for execution */
-  executionParameters: { name: string; in: string }[];
+  executionParameters: ExecutionParameter[];
   /** Content type for request body, if applicable */
   requestBodyContentType?: string;
   /** Security requirements for this operation */
-  securityRequirements: OpenAPIV3.SecurityRequirementObject[];
+  // securityRequirements: OpenAPIV3.SecurityRequirementObject[];
   /** Original operation ID from the OpenAPI spec */
   operationId: string;
 }
 
-export interface SecuritySchemeDefinition {
-  [key: string]: OpenAPIV3.SecuritySchemeObject;
-}
-
-export type CallToolRequestArguments = {
-  [x: string]: unknown;
-};
+export type CallToolRequestArguments = Record<string, unknown>;

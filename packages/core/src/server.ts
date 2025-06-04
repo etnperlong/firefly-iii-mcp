@@ -19,8 +19,8 @@ export const executeApiTool = async (
   let validatedArgs: CallToolRequestArguments;
   try {
     // Validate arguments against the input schema
-    const schema = (typeof definition.inputSchema === 'object' && !!definition.inputSchema) ? definition.inputSchema : {};
-    const validator = new Validator(schema as Schema, '7')
+    const schema = definition.inputSchema;
+    const validator = new Validator(schema, '7')
     const argsToParse = (typeof toolArgs === 'object' && toolArgs !== null) ? toolArgs : {};
     const validatedResult = validator.validate(argsToParse);
     if (validatedResult.valid) {
@@ -140,6 +140,11 @@ export const executeApiTool = async (
   }
 }
 
+/**
+ * Get the MCP server instance
+ * @param serverConfig - The server configuration
+ * @returns The MCP server instance
+ */
 export const getServer = (serverConfig: McpServerConfig): Server => {
   const server = new Server(
     {
@@ -201,7 +206,10 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
     const toolsForClient: Tool[] = generatedTools.map(def => ({
       name: def.name,
       description: def.description,
-      inputSchema: def.inputSchema as any,
+      inputSchema: {
+        ...def.inputSchema,
+        type: 'object',
+      },
     }));
     return { tools: toolsForClient };
   });
