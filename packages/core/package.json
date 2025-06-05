@@ -1,6 +1,6 @@
 {
   "name": "@firefly-iii-mcp/core",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "core modules for Firefly III MCP server",
   "type": "module",
   "private": false,

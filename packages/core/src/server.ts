@@ -52,7 +52,7 @@ export const executeApiTool = async (
   let urlPath = definition.pathTemplate;
   const queryParams: Record<string, any> = {};
   const headers: Record<string, string> = { 'Accept': 'application/json' };
-  let requestBodyData: any = undefined;
+  let requestBodyData: unknown = undefined;
 
   // Apply parameters to the URL path, query, or headers
   definition.executionParameters.forEach((param) => {
@@ -98,7 +98,7 @@ export const executeApiTool = async (
   const response = await fetch(requestUrl, {
     method: definition.method.toUpperCase(),
     headers: headers,
-    ...(requestBodyData !== undefined && { body: requestBodyData }),
+    body: requestBodyData ? JSON.stringify(requestBodyData) : undefined,
   });
 
   if (!response.ok) {
