@@ -182,6 +182,22 @@ export function mapOpenApiSchemaToJsonSchema(
   // Create a shallow copy to avoid modifying the original schema object
   const jsonSchema = schema;
 
+  // OpenAPI specific keywords to remove.
+  // 'discriminator' is also OpenAPI specific but might be handled differently
+  // if you plan to support polymorphism in a specific way with JSON Schema.
+  const OMIT_KEYWORDS = [
+    'xml',
+    'externalDocs',
+    'deprecated',
+    'readOnly',
+    'writeOnly',
+    'discriminator',
+  ];
+
+  for (const keyword of OMIT_KEYWORDS) {
+    delete jsonSchema[keyword];
+  }
+
   // Handle format for string types - only keep 'enum' and 'date-time' formats
   if (jsonSchema.type && jsonSchema.format) {
     switch (jsonSchema.type) {

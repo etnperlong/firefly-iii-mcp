@@ -9,6 +9,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 export type McpServerConfig = {
   baseUrl: string;
   pat: string;
+  enableToolTags?: string[];
 }
 
 /** 

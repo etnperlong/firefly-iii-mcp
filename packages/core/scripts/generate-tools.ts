@@ -9,6 +9,7 @@ const API_DOCUMENT_URL = 'https://api-docs.firefly-iii.org/firefly-iii-6.2.13-v1
 const OUTPUT_FILE = './src/tools.ts';
 
 /** Enabled actions to generate tools for */
+/*
 const ENABLED_ACTIONS: {
   tag: string;
   methods?: ('get' | 'post' | 'put' | 'delete' | 'patch')[];
@@ -30,14 +31,13 @@ const custonFilterFn = (tool: McpToolDefinition) => {
   if (action.methods && !action.methods.includes(tool.method as ('get' | 'post' | 'put' | 'delete' | 'patch'))) return false;
   return true;
 }
+*/
 
 (async () => {
   // Load the OpenAPI document
   const document = (await SwaggerParser.dereference(API_DOCUMENT_URL)) as OpenAPIV3.Document
 
-  const tools: McpToolDefinition[] = await getToolsFromOpenApiDocument(document, {
-    filterFn: custonFilterFn,
-  });
+  const tools: McpToolDefinition[] = await getToolsFromOpenApiDocument(document);
 
   // const securitySchemes = document.components?.securitySchemes;
 

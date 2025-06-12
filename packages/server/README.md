@@ -26,7 +26,57 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-b, --baseUrl <url>` - Firefly III Base URL
 - `-P, --port <number>` - Port to listen on (default: 3000)
 - `-l, --logLevel <level>` - Log level: debug, info, warn, error (default: info)
+- `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+- `-t, --tools <list>` - Comma-separated list of tool tags to enable
 - `-h, --help` - Show help information
+
+#### Environment Variables
+
+You can also configure the server using environment variables:
+
+```
+FIREFLY_III_PAT=YOUR_PAT
+FIREFLY_III_BASE_URL=YOUR_FIREFLY_III_URL
+PORT=3000
+LOG_LEVEL=info
+FIREFLY_III_PRESET=default
+FIREFLY_III_TOOLS=accounts,transactions,categories
+```
+
+#### Tool Filtering Options
+
+You can filter which tools are exposed to the MCP client using presets or custom tool tags:
+
+##### Using Presets
+
+```bash
+# Command-line argument
+firefly-iii-mcp-server --preset PRESET_NAME
+
+# Or environment variable
+FIREFLY_III_PRESET=PRESET_NAME
+```
+
+Available presets:
+- `default`: Basic tools for everyday use (accounts, bills, categories, tags, transactions, search, summary)
+- `full`: All available tools
+- `basic`: Core financial management tools
+- `budget`: Budget-focused tools
+- `reporting`: Reporting and analysis tools
+- `admin`: Administration tools
+- `automation`: Automation-related tools
+
+##### Using Custom Tool Tags
+
+```bash
+# Command-line argument
+firefly-iii-mcp-server --tools tag1,tag2,tag3
+
+# Or environment variable
+FIREFLY_III_TOOLS=tag1,tag2,tag3
+```
+
+> **Note**: Command-line arguments take precedence over environment variables. If both `--tools` and `--preset` are provided, `--tools` will be used.
 
 ### As a Library
 
@@ -60,7 +110,8 @@ const config: ServerConfig = {
     origin: 'https://yourdomain.com',
     credentials: true
   },
-  logLevel: 'info'
+  logLevel: 'info',
+  enableToolTags: ['accounts', 'transactions', 'categories'] // Filter available tools
 };
 
 const server = createServer(config);
@@ -95,6 +146,7 @@ server.start();
 - **HTTPS Support**: Secure communication option
 - **Customizable Logging**: Flexible logging configuration
 - **Command-Line Interface**: Easy deployment without writing code
+- **Tool Filtering**: Filter available tools using presets or custom tags
 
 ## API Endpoints
 

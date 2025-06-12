@@ -5,6 +5,7 @@ import { existsSync } from 'fs';
 import { config } from 'dotenv';
 import { createServer } from './server.js';
 import { parseArgs } from 'node:util';
+import { getPresetTags, presetExists, getAvailablePresets } from '@firefly-iii-mcp/core';
 
 /**
  * Parse command line arguments
@@ -30,6 +31,16 @@ function parseCommandLineArgs() {
       type: 'string',
       short: 'l',
       default: process.env.LOG_LEVEL || 'info'
+    },
+    preset: {
+      type: 'string',
+      short: 's',
+      default: process.env.FIREFLY_III_PRESET
+    },
+    tools: {
+      type: 'string',
+      short: 't',
+      default: process.env.FIREFLY_III_TOOLS
     },
     help: {
       type: 'boolean',
@@ -60,6 +71,8 @@ Options:
   -b, --baseUrl <url>     Firefly III Base URL
   -P, --port <number>     Port to listen on (default: 3000)
   -l, --logLevel <level>  Log level: debug, info, warn, error (default: info)
+  -s, --preset <name>     Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+  -t, --tools <list>      Comma-separated list of tool tags to enable
   -h, --help              Show this help information
 
 Environment variables:
@@ -67,10 +80,14 @@ Environment variables:
   FIREFLY_III_BASE_URL    Firefly III Base URL
   PORT                    Port to listen on
   LOG_LEVEL               Log level
+  FIREFLY_III_PRESET      Tool preset to use
+  FIREFLY_III_TOOLS       Comma-separated list of tool tags to enable
 
 Examples:
   firefly-iii-mcp-server --pat YOUR_PAT --baseUrl https://firefly.example.com
   firefly-iii-mcp-server --port 8080 --logLevel debug
+  firefly-iii-mcp-server --preset budget
+  firefly-iii-mcp-server --tools accounts,transactions,categories
   `);
   process.exit(0);
 }
@@ -120,12 +137,31 @@ async function main() {
     process.exit(1);
   }
 
+  // Process enableToolTags
+  let enableToolTags: string[] | undefined = undefined;
+
+  // Check if --tools is provided (highest priority)
+  if (args.tools) {
+    enableToolTags = args.tools.split(',').map(tag => tag.trim()).filter(Boolean);
+  }
+  // If --tools is not provided, check if --preset is provided (second priority)
+  else if (args.preset) {
+    const presetArg = args.preset.toLowerCase();
+    if (presetExists(presetArg)) {
+      enableToolTags = getPresetTags(presetArg);
+    } else {
+      console.warn(`Warning: Unknown preset "${presetArg}". Using default preset.`);
+      console.warn(`Available presets: ${getAvailablePresets().join(', ')}`);
+    }
+  }
+
   // Create and start server
   const server = createServer({
     port,
     pat,
     baseUrl,
-    logLevel: logLevel as 'debug' | 'info' | 'warn' | 'error'
+    logLevel: logLevel as 'debug' | 'info' | 'warn' | 'error',
+    enableToolTags
   });
 
   // Handle graceful shutdown

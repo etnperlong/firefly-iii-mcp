@@ -1,6 +1,6 @@
 {
   "name": "@firefly-iii-mcp/local",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Run Firefly III MCP server locally",
   "type": "module",
   "bin": {
@@ -9,7 +9,8 @@
   "private": false,
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "README_ZH.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -23,8 +24,8 @@
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "@firefly-iii-mcp/core": "1.3.3",
-    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@firefly-iii-mcp/core": "1.4.0",
+    "@modelcontextprotocol/sdk": "1.12.0",
     "dotenv": "^16.5.0"
   },
   "engines": {
@@ -33,8 +34,8 @@
   "devDependencies": {
     "rimraf": "^6.0.1",
     "shx": "^0.4.0",
-    "typescript": "^5.3.3",
-    "@types/node": "^22.15.24"
+    "typescript": "^5.8.3",
+    "@types/node": "^22.15.31"
   },
   "repository": {
     "type": "git",

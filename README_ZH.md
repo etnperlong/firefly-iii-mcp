@@ -20,6 +20,7 @@
 * 可扩展的工具集，用于各种财务操作
 * 支持本地运行和云端部署
 * 兼容 Model Context Protocol 标准
+* 通过预设或自定义标签过滤工具，减少 Token 使用量
 
 ## 前置条件
 
@@ -70,6 +71,10 @@
 ```bash
 FIREFLY_III_BASE_URL="YOUR_FIREFLY_III_INSTANCE_URL" # 例如，https://firefly.yourdomain.com
 FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
+# 可选：使用预设或自定义标签过滤工具
+FIREFLY_III_PRESET="default" # 可用选项：default, full, basic, budget, reporting, admin, automation
+# 或指定自定义工具标签（如果同时设置了预设，此项优先）
+FIREFLY_III_TOOLS="accounts,transactions,categories"
 ```
 
 ## 运行 MCP 服务器
@@ -81,6 +86,16 @@ FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
 
 ```bash
 npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
+```
+
+您也可以过滤可用的工具以减少 Token 使用量：
+
+```bash
+# 使用预设
+npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL --preset budget
+
+# 使用自定义工具标签
+npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL --tools accounts,transactions,categories
 ```
 
 您也可以参考 [官方教程](https://modelcontextprotocol.io/quickstart/user) 了解 JSON 格式的配置方式。
@@ -95,7 +110,9 @@ npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
         "--pat",
         "<您的 Firefly III 个人访问令牌>",
         "--baseUrl",
-        "<您的 Firefly III 基础 URL>"
+        "<您的 Firefly III 基础 URL>",
+        "--preset",
+        "default"
       ]
     }
   }
@@ -117,6 +134,8 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-b, --baseUrl <url>` - Firefly III 基础 URL
 - `-P, --port <number>` - 监听端口（默认：3000）
 - `-l, --logLevel <level>` - 日志级别：debug, info, warn, error（默认：info）
+- `-s, --preset <name>` - 使用的工具预设（default, full, basic, budget, reporting, admin, automation）
+- `-t, --tools <list>` - 启用的工具标签的逗号分隔列表
 
 #### 作为库使用
 
@@ -132,7 +151,8 @@ import { createServer } from '@firefly-iii-mcp/server';
 const server = createServer({
   port: 3000,
   pat: process.env.FIREFLY_III_PAT,
-  baseUrl: process.env.FIREFLY_III_BASE_URL
+  baseUrl: process.env.FIREFLY_III_BASE_URL,
+  enableToolTags: ['accounts', 'transactions', 'categories'] // 可选：过滤可用工具
 });
 
 server.start().then(() => {
@@ -148,30 +168,69 @@ server.start().then(() => {
 
 [![部署到 Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/etnperlong/firefly-iii-mcp/tree/main/packages/cloudflare-worker)
 
-**注意：** 部署后，您需要在 Cloudflare Worker 的设置中配置 `FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT` 环境变量：
+**注意：** 部署后，您需要在 Cloudflare Worker 的设置中配置环境变量：
 
 1. 进入您的 Cloudflare 仪表板
 2. 导航至 Workers & Pages
 3. 选择您部署的 Worker
 4. 进入设置 > 变量
-5. 添加 `FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT` 作为秘密变量
+5. 添加以下变量：
+   - 必需：`FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT`
+   - 可选：`FIREFLY_III_PRESET` 或 `FIREFLY_III_TOOLS`
 
 ### 方式四：从源代码本地运行
 
 > [!NOTE]
 > 对于生产用途，建议使用 NPM 包或部署到 Cloudflare Workers。
 
+1. 克隆本仓库：
+   ```bash
+   git clone https://github.com/etnperlong/firefly-iii-mcp.git
+   cd firefly-iii-mcp
+   ```
+
+2. 安装依赖：
+   ```bash
+   npm install
+   ```
+
+3. 创建一个 `.env` 文件：
+   ```
+   FIREFLY_III_BASE_URL="YOUR_FIREFLY_III_INSTANCE_URL"
+   FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
+   # 可选：过滤工具
+   FIREFLY_III_PRESET="default"
+   # 或
+   FIREFLY_III_TOOLS="accounts,transactions,categories"
+   ```
+
+4. 构建项目：
+   ```bash
+   npm run build
+   ```
+
+5. 启动开发服务器：
+   ```bash
+   npm run dev
+   ```
+
+## 工具过滤选项
+
+您可以过滤向 MCP 客户端公开的工具，以减少 Token 使用量并专注于特定功能：
+
+### 可用预设
+
+- `default`: 日常使用的基本工具（账户、账单、分类、标签、交易、搜索、摘要）
+- `full`: 所有可用工具
+- `basic`: 核心财务管理工具
+- `budget`: 预算相关工具
+- `reporting`: 报告和分析工具
+- `admin`: 管理工具
+- `automation`: 自动化相关工具
+
 ## 开发指南
 
 本项目使用 [Turborepo](https://turbo.build/) 来管理 monorepo 工作流和 [Changesets](https://github.com/changesets/changesets) 进行版本控制和发布。
-
-### 项目结构
-
-本项目包含以下几个主要包：
-
-* **@firefly-iii-mcp/core** - 核心功能模块，提供与 Firefly III API 交互的基础功能
-* **@firefly-iii-mcp/local** - 本地运行 MCP 服务器的命令行工具
-* **@firefly-iii-mcp/cloudflare-worker** - 用于部署到 Cloudflare Workers 的实现
 
 ### 常用命令
 

@@ -1,5 +1,5 @@
 import express, { Express, Request, Response } from 'express';
-import { getServer, McpServerConfig, Server } from '@firefly-iii-mcp/core';
+import { getServer, McpServerConfig } from '@firefly-iii-mcp/core';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
@@ -57,6 +57,8 @@ export interface ServerConfig {
   corsOptions?: CorsOptions;
   /** Log level (default: 'info') */
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  /** Tool tags to enable */
+  enableToolTags?: string[];
 }
 
 /**
@@ -85,7 +87,8 @@ export function createServer(config: ServerConfig): McpServer {
     baseUrl,
     https: httpsOptions,
     corsOptions,
-    logLevel = 'info'
+    logLevel = 'info',
+    enableToolTags
   } = config;
 
   // Set up logging based on log level
@@ -175,6 +178,7 @@ export function createServer(config: ServerConfig): McpServer {
         const mcpServerConfig: McpServerConfig = {
           baseUrl,
           pat,
+          enableToolTags
         };
         const server = getServer(mcpServerConfig);
         await server.connect(transport);

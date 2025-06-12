@@ -10,6 +10,7 @@ import { CallToolRequestArguments, McpServerConfig, McpToolDefinition } from "./
 import { generatedTools } from "./tools.js";
 import { Schema, Validator } from "@cfworker/json-schema";
 import { openapiSchemaToJsonSchema } from "@openapi-contrib/openapi-schema-to-json-schema";
+import { DEFAULT_PRESET_TAGS } from "./presets.js";
 
 export const executeApiTool = async (
   toolName: string,
@@ -163,6 +164,19 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
         inputSchema: {
           type: 'object'
         },
+        outputSchema: {
+          type: 'object',
+          properties: {
+            error: {
+              type: 'string',
+              description: 'The error message'
+            },
+            message: {
+              type: 'string',
+              description: 'The error message'
+            }
+          }
+        }
       }
       return { tools: [unavailableTool] }
     })
@@ -187,6 +201,19 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
         inputSchema: {
           type: 'object'
         },
+        outputSchema: {
+          type: 'object',
+          properties: {
+            error: {
+              type: 'string',
+              description: 'The error message'
+            },
+            message: {
+              type: 'string',
+              description: 'The error message'
+            }
+          }
+        }
       }
       return { tools: [unauthorizedTool] }
     })
@@ -203,8 +230,10 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
     return server;
   }
 
+  const enableToolTags = serverConfig.enableToolTags ?? DEFAULT_PRESET_TAGS;
+
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    const toolsForClient: Tool[] = generatedTools.map(def => ({
+    const toolsForClient: Tool[] = generatedTools.filter(def => enableToolTags.length === 0 || enableToolTags.some(tag => def.tags.includes(tag))).map(def => ({
       name: def.name,
       description: def.description,
       inputSchema: {

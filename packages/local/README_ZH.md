@@ -36,6 +36,10 @@ firefly-iii-mcp --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 ```
 FIREFLY_III_PAT=YOUR_PAT
 FIREFLY_III_BASE_URL=YOUR_FIREFLY_III_URL
+# 可选：使用预设进行工具过滤
+FIREFLY_III_PRESET=default
+# 可选：指定自定义工具标签（如果同时设置了FIREFLY_III_PRESET，此项优先）
+FIREFLY_III_TOOLS=accounts,transactions,categories
 ```
 
 然后运行：
@@ -43,6 +47,45 @@ FIREFLY_III_BASE_URL=YOUR_FIREFLY_III_URL
 ```bash
 firefly-iii-mcp
 ```
+
+### 工具过滤选项
+
+您可以使用以下选项过滤向 MCP 客户端公开的工具：
+
+#### 使用预设
+
+```bash
+# 命令行参数
+firefly-iii-mcp --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL --preset 预设名称
+
+# 或环境变量
+FIREFLY_III_PRESET=预设名称
+```
+
+可用的预设：
+- `default`: 日常使用的基本工具（账户、账单、分类、标签、交易、搜索、摘要）
+- `full`: 所有可用工具
+- `basic`: 核心财务管理工具
+- `budget`: 预算相关工具
+- `reporting`: 报告和分析工具
+- `admin`: 管理工具
+- `automation`: 自动化相关工具
+
+#### 使用自定义工具标签
+
+```bash
+# 命令行参数
+firefly-iii-mcp --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL --tools 标签1,标签2,标签3
+
+# 或环境变量
+FIREFLY_III_TOOLS=标签1,标签2,标签3
+```
+
+可用的工具标签：about, accounts, attachments, autocomplete, available_budgets, bills, budgets, categories, charts, configuration, currencies, currency_exchange_rates, data, insight, links, object_groups, piggy_banks, preferences, recurrences, rule_groups, rules, search, summary, tags, transactions, user_groups, users, webhooks
+
+具体工具标签请参考 Firefly III [API Docs](https://api-docs.firefly-iii.org/?urls.primaryName=6.2.13+%28v1%29) 或 [core/src/presets.ts](../../packages/core/src/presets.ts) 文件。
+
+> **注意**：命令行参数优先级高于环境变量。如果同时提供了 `--tools` 和 `--preset`，将使用 `--tools`。
 
 ## 与 AI 工具集成
 

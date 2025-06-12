@@ -26,7 +26,57 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-b, --baseUrl <url>` - Firefly III 基础 URL
 - `-P, --port <number>` - 监听端口（默认：3000）
 - `-l, --logLevel <level>` - 日志级别：debug, info, warn, error（默认：info）
+- `-s, --preset <name>` - 使用的工具预设（default, full, basic, budget, reporting, admin, automation）
+- `-t, --tools <list>` - 启用的工具标签的逗号分隔列表
 - `-h, --help` - 显示帮助信息
+
+#### 环境变量
+
+您也可以使用环境变量配置服务器：
+
+```
+FIREFLY_III_PAT=YOUR_PAT
+FIREFLY_III_BASE_URL=YOUR_FIREFLY_III_URL
+PORT=3000
+LOG_LEVEL=info
+FIREFLY_III_PRESET=default
+FIREFLY_III_TOOLS=accounts,transactions,categories
+```
+
+#### 工具过滤选项
+
+您可以使用预设或自定义工具标签来过滤向 MCP 客户端公开的工具：
+
+##### 使用预设
+
+```bash
+# 命令行参数
+firefly-iii-mcp-server --preset 预设名称
+
+# 或环境变量
+FIREFLY_III_PRESET=预设名称
+```
+
+可用的预设：
+- `default`: 日常使用的基本工具（账户、账单、分类、标签、交易、搜索、摘要）
+- `full`: 所有可用工具
+- `basic`: 核心财务管理工具
+- `budget`: 预算相关工具
+- `reporting`: 报告和分析工具
+- `admin`: 管理工具
+- `automation`: 自动化相关工具
+
+##### 使用自定义工具标签
+
+```bash
+# 命令行参数
+firefly-iii-mcp-server --tools 标签1,标签2,标签3
+
+# 或环境变量
+FIREFLY_III_TOOLS=标签1,标签2,标签3
+```
+
+> **注意**：命令行参数优先级高于环境变量。如果同时提供了 `--tools` 和 `--preset`，将使用 `--tools`。
 
 ### 作为库使用
 
@@ -60,7 +110,8 @@ const config: ServerConfig = {
     origin: 'https://yourdomain.com',
     credentials: true
   },
-  logLevel: 'info'
+  logLevel: 'info',
+  enableToolTags: ['accounts', 'transactions', 'categories'] // 过滤可用工具
 };
 
 const server = createServer(config);
@@ -95,6 +146,7 @@ server.start();
 - **HTTPS 支持**：安全通信选项
 - **可定制的日志**：灵活的日志配置
 - **命令行界面**：无需编写代码即可轻松部署
+- **工具过滤**：使用预设或自定义标签过滤可用工具
 
 ## API 端点
 

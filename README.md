@@ -20,6 +20,7 @@ This project uses a Turborepo-managed monorepo structure, containing the followi
 * Extensible toolset for various financial operations
 * Support for both local and cloud deployment
 * Compatible with the Model Context Protocol standard
+* Tool filtering via presets or custom tags to reduce token usage
 
 ## Prerequisites
 
@@ -70,6 +71,10 @@ Set the following environment variables before running the server:
 ```bash
 FIREFLY_III_BASE_URL="YOUR_FIREFLY_III_INSTANCE_URL" # e.g., https://firefly.yourdomain.com
 FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
+# Optional: Filter tools using preset or custom tags
+FIREFLY_III_PRESET="default" # Available: default, full, basic, budget, reporting, admin, automation
+# Or specify custom tool tags (overrides preset if both are set)
+FIREFLY_III_TOOLS="accounts,transactions,categories"
 ```
 
 ## Running the MCP Server
@@ -81,6 +86,16 @@ Basic run command:
 
 ```bash
 npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
+```
+
+You can also filter the available tools to reduce token usage:
+
+```bash
+# Using a preset
+npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL --preset budget
+
+# Using custom tool tags
+npx @firefly-iii-mcp/local --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL --tools accounts,transactions,categories
 ```
 
 You can also refer to the [official tutorial](https://modelcontextprotocol.io/quickstart/user) for configuration in JSON format.
@@ -95,7 +110,9 @@ You can also refer to the [official tutorial](https://modelcontextprotocol.io/qu
         "--pat",
         "<Your Firefly III Personal Access Token>",
         "--baseUrl",
-        "<Your Firefly III Base URL>"
+        "<Your Firefly III Base URL>",
+        "--preset",
+        "default"
       ]
     }
   }
@@ -117,6 +134,8 @@ Command-line options:
 - `-b, --baseUrl <url>` - Firefly III Base URL
 - `-P, --port <number>` - Port to listen on (default: 3000)
 - `-l, --logLevel <level>` - Log level: debug, info, warn, error (default: info)
+- `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+- `-t, --tools <list>` - Comma-separated list of tool tags to enable
 
 #### As a Library
 
@@ -132,7 +151,8 @@ import { createServer } from '@firefly-iii-mcp/server';
 const server = createServer({
   port: 3000,
   pat: process.env.FIREFLY_III_PAT,
-  baseUrl: process.env.FIREFLY_III_BASE_URL
+  baseUrl: process.env.FIREFLY_III_BASE_URL,
+  enableToolTags: ['accounts', 'transactions', 'categories'] // Optional: Filter available tools
 });
 
 server.start().then(() => {
@@ -148,13 +168,15 @@ You can easily deploy this MCP server to Cloudflare Workers using the button bel
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/etnperlong/firefly-iii-mcp/tree/main/packages/cloudflare-worker)
 
-**Note:** After deploying, you will need to configure the `FIREFLY_III_BASE_URL` and `FIREFLY_III_PAT` environment variables in your Cloudflare Worker's settings:
+**Note:** After deploying, you will need to configure the environment variables in your Cloudflare Worker's settings:
 
 1. Go to your Cloudflare dashboard
 2. Navigate to Workers & Pages
 3. Select your deployed Worker
 4. Go to Settings > Variables
-5. Add `FIREFLY_III_BASE_URL` and `FIREFLY_III_PAT` as secret variables
+5. Add the following variables:
+   - Required: `FIREFLY_III_BASE_URL` and `FIREFLY_III_PAT`
+   - Optional: `FIREFLY_III_PRESET` or `FIREFLY_III_TOOLS`
 
 ### Method 4: Run Locally from Source
 
@@ -176,6 +198,10 @@ You can easily deploy this MCP server to Cloudflare Workers using the button bel
    ```
    FIREFLY_III_BASE_URL="YOUR_FIREFLY_III_INSTANCE_URL"
    FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
+   # Optional: Filter tools
+   FIREFLY_III_PRESET="default"
+   # Or
+   FIREFLY_III_TOOLS="accounts,transactions,categories"
    ```
 
 4. Build the project:
@@ -187,6 +213,20 @@ You can easily deploy this MCP server to Cloudflare Workers using the button bel
    ```bash
    npm run dev
    ```
+
+## Tool Filtering Options
+
+You can filter which tools are exposed to the MCP client to reduce token usage and focus on specific functionality:
+
+### Available Presets
+
+- `default`: Basic tools for everyday use (accounts, bills, categories, tags, transactions, search, summary)
+- `full`: All available tools
+- `basic`: Core financial management tools
+- `budget`: Budget-focused tools
+- `reporting`: Reporting and analysis tools
+- `admin`: Administration tools
+- `automation`: Automation-related tools
 
 ## Development Guide
 

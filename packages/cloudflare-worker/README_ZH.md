@@ -10,6 +10,7 @@
 - 低延迟高可用性服务
 - 无需服务器维护
 - 无缝集成 Firefly III API
+- 支持通过预设或自定义标签过滤工具
 
 ## 部署方式
 
@@ -47,8 +48,25 @@
 
 部署后，您需要在 Cloudflare Workers 的环境变量中配置以下内容：
 
+### 必需变量
+
 - `FIREFLY_III_BASE_URL`: 您的 Firefly III 实例 URL（例如：`https://firefly.yourdomain.com`）
 - `FIREFLY_III_PAT`: 您的 Firefly III 个人访问令牌
+
+### 可选变量
+
+- `FIREFLY_III_PRESET`: 要使用的工具预设（default, full, basic, budget, reporting, admin, automation）
+- `FIREFLY_III_TOOLS`: 启用的工具标签的逗号分隔列表（如果同时设置了 FIREFLY_III_PRESET，此项优先）
+
+#### 可用预设
+
+- `default`: 日常使用的基本工具（账户、账单、分类、标签、交易、搜索、摘要）
+- `full`: 所有可用工具
+- `basic`: 核心财务管理工具
+- `budget`: 预算相关工具
+- `reporting`: 报告和分析工具
+- `admin`: 管理工具
+- `automation`: 自动化相关工具
 
 ### 配置步骤
 
@@ -56,7 +74,7 @@
 2. 导航至 Workers & Pages
 3. 选择您部署的 Worker
 4. 进入设置 > 变量
-5. 添加 `FIREFLY_III_BASE_URL` 和 `FIREFLY_III_PAT` 作为秘密变量
+5. 添加必需和可选变量作为秘密变量
 
 ## 使用方法
 
