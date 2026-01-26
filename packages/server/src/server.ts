@@ -92,14 +92,14 @@ export function createServer(config: ServerConfig): McpServer {
   } = config;
 
   // Set up logging based on log level
-  const logDebug = logLevel === 'debug' ? console.debug : () => {};
-  const logInfo = ['debug', 'info'].includes(logLevel) ? console.info : () => {};
-  const logWarn = ['debug', 'info', 'warn'].includes(logLevel) ? console.warn : () => {};
+  const logDebug = logLevel === 'debug' ? console.debug : () => { };
+  const logInfo = ['debug', 'info'].includes(logLevel) ? console.info : () => { };
+  const logWarn = ['debug', 'info', 'warn'].includes(logLevel) ? console.warn : () => { };
   const logError = console.error;
 
   // Setup Express app
   const app = express();
-  
+
   // Apply middleware
   app.use(express.json());
   app.use(compression());
@@ -112,7 +112,7 @@ export function createServer(config: ServerConfig): McpServer {
       },
     },
   }));
-  
+
   // Apply CORS if options provided
   if (corsOptions) {
     app.use(cors(corsOptions));
@@ -220,7 +220,7 @@ export function createServer(config: ServerConfig): McpServer {
     res.on("close", () => {
       delete transports[transport.sessionId];
     });
-    
+
     const mcpServerConfig: McpServerConfig = {
       baseUrl,
       pat,
@@ -257,7 +257,7 @@ export function createServer(config: ServerConfig): McpServer {
   });
 
   // Create HTTP or HTTPS server
-  const server = httpsOptions 
+  const server = httpsOptions
     ? https.createServer(httpsOptions, app)
     : http.createServer(app);
 
@@ -298,7 +298,7 @@ export function createServer(config: ServerConfig): McpServer {
     async stop(): Promise<void> {
       return new Promise((resolve, reject) => {
         logInfo('Shutting down server...');
-        
+
         // Close all active transports to properly clean up resources
         for (const sessionId in transports) {
           try {
@@ -309,7 +309,7 @@ export function createServer(config: ServerConfig): McpServer {
             logWarn(`Error closing transport for session ${sessionId}:`, error);
           }
         }
-        
+
         server.close((err) => {
           if (err) {
             logError('Error shutting down server:', err);

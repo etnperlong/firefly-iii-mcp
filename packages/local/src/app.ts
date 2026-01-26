@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import { 
-  getServer, 
-  McpServerConfig, 
-  Server, 
-  getPresetTags, 
-  getAvailablePresets, 
-  presetExists, 
-  ALL_TOOL_TAGS 
+import {
+  getServer,
+  McpServerConfig,
+  Server,
+  getPresetTags,
+  getAvailablePresets,
+  presetExists,
+  ALL_TOOL_TAGS
 } from '@firefly-iii-mcp/core';
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { config } from 'dotenv';
@@ -33,27 +33,27 @@ export class FireflyIIIMcpServer {
     const pat = patArgIndex !== -1 ? process.argv[patArgIndex + 1] : process.env.FIREFLY_III_PAT;
     const baseUrlArgIndex = process.argv.indexOf('--baseUrl');
     const baseUrl = baseUrlArgIndex !== -1 ? process.argv[baseUrlArgIndex + 1] : process.env.FIREFLY_III_BASE_URL;
-    
+
     // Get preset and tools arguments
     const presetArgIndex = process.argv.indexOf('--preset');
     const toolsArgIndex = process.argv.indexOf('--tools');
-    
+
     // Process enableToolTags
     let enableToolTags: string[] | undefined = undefined;
-    
+
     // Check if --tools is provided (highest priority)
     if (toolsArgIndex !== -1 && process.argv[toolsArgIndex + 1]) {
       const toolsArg = process.argv[toolsArgIndex + 1];
       enableToolTags = toolsArg.split(',').map(tag => tag.trim()).filter(Boolean);
-    } 
+    }
     // If --tools is not provided, check if --preset is provided (second priority)
     else if (presetArgIndex !== -1 && process.argv[presetArgIndex + 1]) {
       const presetArg = process.argv[presetArgIndex + 1].toLowerCase();
       if (presetExists(presetArg)) {
         enableToolTags = getPresetTags(presetArg);
       } else {
-        console.warn(`Warning: Unknown preset "${presetArg}". Using default preset.`);
-        console.warn(`Available presets: ${getAvailablePresets().join(', ')}`);
+        console.error(`Warning: Unknown preset "${presetArg}". Using default preset.`);
+        console.error(`Available presets: ${getAvailablePresets().join(', ')}`);
       }
     }
     // If no command line args, check environment variables (third priority)
@@ -68,12 +68,12 @@ export class FireflyIIIMcpServer {
         if (presetExists(presetArg)) {
           enableToolTags = getPresetTags(presetArg);
         } else {
-          console.warn(`Warning: Unknown preset "${presetArg}" in FIREFLY_III_PRESET. Using default preset.`);
-          console.warn(`Available presets: ${getAvailablePresets().join(', ')}`);
+          console.error(`Warning: Unknown preset "${presetArg}" in FIREFLY_III_PRESET. Using default preset.`);
+          console.error(`Available presets: ${getAvailablePresets().join(', ')}`);
         }
       }
     }
-    
+
     if (!pat || !baseUrl) {
       console.error('Error: FIREFLY_III_PAT and FIREFLY_III_BASE_URL are required for running MCP server locally');
       console.error('Usage: firefly-iii-mcp --pat FIREFLY_III_PAT --baseUrl FIREFLY_III_BASE_URL [--preset PRESET_NAME] [--tools TAG1,TAG2,...]');
@@ -86,7 +86,7 @@ export class FireflyIIIMcpServer {
       console.error(`Available tool tags: ${ALL_TOOL_TAGS.join(', ')}`);
       process.exit(1);
     }
-    
+
     // Get server configuration
     this.serverConfig = {
       pat,
@@ -119,14 +119,14 @@ export class FireflyIIIMcpServer {
     await this.server.connect(transport);
 
     // Log server info
-    console.log(`[Firefly III MCP Server] Server running locally on stdio`);
-    console.log(`[Firefly III MCP Server] Connected to Firefly III at: ${this.serverConfig.baseUrl}`);
-    
+    console.error(`[Firefly III MCP Server] Server running locally on stdio`);
+    console.error(`[Firefly III MCP Server] Connected to Firefly III at: ${this.serverConfig.baseUrl}`);
+
     // Log enabled tool tags if specified
     if (this.serverConfig.enableToolTags) {
-      console.log(`[Firefly III MCP Server] Enabled tool tags: ${this.serverConfig.enableToolTags.join(', ')}`);
+      console.error(`[Firefly III MCP Server] Enabled tool tags: ${this.serverConfig.enableToolTags.join(', ')}`);
     } else {
-      console.log(`[Firefly III MCP Server] Using default tool tags`);
+      console.error(`[Firefly III MCP Server] Using default tool tags`);
     }
   }
 }

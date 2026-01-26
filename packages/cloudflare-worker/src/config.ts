@@ -15,10 +15,10 @@ export const getMcpServerConfig = (c: Context<{
   const baseUrlInHeader = c.req.header('X-Firefly-III-Url');
   const baseUrlInSecret = c.env.FIREFLY_III_BASE_URL;
   const baseUrl = baseUrlInQuery || baseUrlInHeader || baseUrlInSecret;
-  
+
   /** Tool Filtering */
   let enableToolTags: string[] | undefined = undefined;
-  
+
   // Check for FIREFLY_III_TOOLS environment variable (higher priority)
   if (c.env.FIREFLY_III_TOOLS) {
     enableToolTags = c.env.FIREFLY_III_TOOLS.split(',').map(tag => tag.trim()).filter(Boolean);
@@ -31,7 +31,7 @@ export const getMcpServerConfig = (c: Context<{
       console.warn(`Warning: Error processing preset "${c.env.FIREFLY_III_PRESET}". Using default preset.`);
     }
   }
-  
+
   return {
     baseUrl,
     pat,
