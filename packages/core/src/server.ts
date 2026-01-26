@@ -17,6 +17,7 @@ export const executeApiTool = async (
   definition: McpToolDefinition,
   toolArgs: CallToolRequestArguments,
   serverConfig: McpServerConfig,
+  server: Server,
 ): Promise<CallToolResult> => {
   let validatedArgs: CallToolRequestArguments;
   try {
@@ -93,8 +94,16 @@ export const executeApiTool = async (
   const requestUrl = queryParams ? `${requestEndpoint}?${new URLSearchParams(queryParams).toString()}` : requestEndpoint;
   const requestMethod = definition.method.toUpperCase();
 
-  // Log request info to stderr (doesn't affect MCP output)
-  console.debug(`Executing tool "${toolName}": ${requestMethod} ${requestEndpoint}`);
+  // Log request info via MCP protocol
+  if (server) {
+    server.sendLoggingMessage({
+      level: 'info',
+      data: `Executing tool "${toolName}": ${requestMethod} ${requestEndpoint}`,
+    }).catch(console.error);
+  } else {
+    // Fallback if server instance is not provided (should not happen in normal operation)
+    console.error(`Executing tool "${toolName}": ${requestMethod} ${requestEndpoint}`);
+  }
 
   const response = await fetch(requestUrl, {
     method: definition.method.toUpperCase(),
@@ -153,7 +162,10 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
       name: 'Firefly III MCP Agent',
       version: '1.3.0',
     }, {
-    capabilities: { tools: {} }
+    capabilities: {
+      tools: {},
+      logging: {}
+    }
   })
 
   if (!serverConfig.baseUrl) {
@@ -250,7 +262,7 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
       console.error(`Error: Unknown tool requested: ${toolName}`);
       return { content: [{ type: "text", text: `Error: Unknown tool requested: ${toolName}` }] };
     }
-    return await executeApiTool(toolName, toolDefinition, toolArgs ?? {}, serverConfig);
+    return await executeApiTool(toolName, toolDefinition, toolArgs ?? {}, serverConfig, server);
   });
   return server;
 }
