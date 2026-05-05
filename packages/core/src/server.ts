@@ -85,7 +85,15 @@ export const executeApiTool = async (
   /**
    * Used Preloaded Security Schemes, ignored for now
    */
-  const { pat, baseUrl } = serverConfig;
+  const { pat, baseUrl, extraHeaders } = serverConfig;
+  // Apply user-provided extra headers (e.g. for an auth proxy in front of Firefly III).
+  // Authorization is reserved so the Bearer PAT cannot be overridden.
+  if (extraHeaders) {
+    for (const [key, value] of Object.entries(extraHeaders)) {
+      if (key.toLowerCase() === 'authorization') continue;
+      headers[key] = value;
+    }
+  }
   headers['Authorization'] = `Bearer ${pat}`;
 
   // Construct the full URL
@@ -93,8 +101,9 @@ export const executeApiTool = async (
   const requestUrl = queryParams ? `${requestEndpoint}?${new URLSearchParams(queryParams).toString()}` : requestEndpoint;
   const requestMethod = definition.method.toUpperCase();
 
-  // Log request info to stderr (doesn't affect MCP output)
-  console.debug(`Executing tool "${toolName}": ${requestMethod} ${requestEndpoint}`);
+  // Log request info to stderr. console.debug actually writes to stdout in Node,
+  // which corrupts the MCP JSON-RPC frames carried over stdout.
+  console.error(`Executing tool "${toolName}": ${requestMethod} ${requestEndpoint}`);
 
   const response = await fetch(requestUrl, {
     method: definition.method.toUpperCase(),

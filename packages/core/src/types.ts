@@ -10,6 +10,8 @@ export type McpServerConfig = {
   baseUrl: string;
   pat: string;
   enableToolTags?: string[];
+  /** Optional extra headers to send on every request to Firefly III (e.g. when sitting behind an auth proxy). The "Authorization" header is reserved and cannot be overridden. */
+  extraHeaders?: Record<string, string>;
 }
 
 /** 

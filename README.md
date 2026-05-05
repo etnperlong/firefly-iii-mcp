@@ -214,6 +214,25 @@ You can easily deploy this MCP server to Cloudflare Workers using the button bel
    npm run dev
    ```
 
+## Forwarding extra HTTP headers
+
+If your Firefly III instance sits behind an authentication proxy (Cloudflare Access, AWS API Gateway, Authelia, basic-auth, etc.), the proxy usually expects extra headers in addition to the Firefly Personal Access Token. You can ask the MCP server to forward arbitrary headers on every request via:
+
+| Method | Format |
+| --- | --- |
+| Env var | `FIREFLY_III_EXTRA_HEADERS='{"Header-Name":"value", ...}'` |
+| CLI arg | `--extraHeaders '{"Header-Name":"value", ...}'` |
+
+The value must be a JSON object whose values are strings; anything else is ignored with a warning. The `Authorization` header is reserved (the PAT is always sent there) and cannot be overridden via this mechanism. Header values are never logged — only the names are printed once at startup.
+
+### Example: Cloudflare Access
+
+```bash
+FIREFLY_III_EXTRA_HEADERS='{"CF-Access-Client-Id":"xxxxxxxx.access","CF-Access-Client-Secret":"yyyyyyyy"}'
+```
+
+This causes every request to Firefly III to include both the service token headers and the regular `Authorization: Bearer <PAT>`, so the request passes the Cloudflare Access policy and authenticates against Firefly.
+
 ## Tool Filtering Options
 
 You can filter which tools are exposed to the MCP client to reduce token usage and focus on specific functionality:

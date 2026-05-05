@@ -33,7 +33,31 @@ export class FireflyIIIMcpServer {
     const pat = patArgIndex !== -1 ? process.argv[patArgIndex + 1] : process.env.FIREFLY_III_PAT;
     const baseUrlArgIndex = process.argv.indexOf('--baseUrl');
     const baseUrl = baseUrlArgIndex !== -1 ? process.argv[baseUrlArgIndex + 1] : process.env.FIREFLY_III_BASE_URL;
-    
+
+    // Optional extra headers to forward on every request (e.g. when Firefly III sits behind
+    // an authentication proxy such as Cloudflare Access, AWS API Gateway, Authelia, etc.).
+    // Env var takes precedence over the CLI arg. Expected format: a JSON object of strings.
+    const extraHeadersArgIndex = process.argv.indexOf('--extraHeaders');
+    const extraHeadersRaw = process.env.FIREFLY_III_EXTRA_HEADERS
+      ?? (extraHeadersArgIndex !== -1 ? process.argv[extraHeadersArgIndex + 1] : undefined);
+    let extraHeaders: Record<string, string> | undefined;
+    if (extraHeadersRaw) {
+      try {
+        const parsed = JSON.parse(extraHeadersRaw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          extraHeaders = Object.fromEntries(
+            Object.entries(parsed)
+              .filter(([, v]) => typeof v === 'string')
+              .map(([k, v]) => [k, v as string])
+          );
+        } else {
+          console.warn('Warning: FIREFLY_III_EXTRA_HEADERS must be a JSON object of string values. Ignoring.');
+        }
+      } catch (e) {
+        console.warn(`Warning: Could not parse FIREFLY_III_EXTRA_HEADERS as JSON. Ignoring. (${(e as Error).message})`);
+      }
+    }
+
     // Get preset and tools arguments
     const presetArgIndex = process.argv.indexOf('--preset');
     const toolsArgIndex = process.argv.indexOf('--tools');
@@ -82,6 +106,7 @@ export class FireflyIIIMcpServer {
       console.error('  FIREFLY_III_BASE_URL: Firefly III instance URL');
       console.error('  FIREFLY_III_PRESET: Optional preset name');
       console.error('  FIREFLY_III_TOOLS: Optional comma-separated list of tool tags');
+      console.error('  FIREFLY_III_EXTRA_HEADERS: Optional JSON object with extra headers to forward on every request');
       console.error(`\nAvailable presets: ${getAvailablePresets().join(', ')}`);
       console.error(`Available tool tags: ${ALL_TOOL_TAGS.join(', ')}`);
       process.exit(1);
@@ -92,6 +117,7 @@ export class FireflyIIIMcpServer {
       pat,
       baseUrl,
       enableToolTags,
+      extraHeaders,
     };
 
     // Get server
@@ -118,15 +144,20 @@ export class FireflyIIIMcpServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
 
-    // Log server info
-    console.log(`[Firefly III MCP Server] Server running locally on stdio`);
-    console.log(`[Firefly III MCP Server] Connected to Firefly III at: ${this.serverConfig.baseUrl}`);
-    
+    // Log server info to stderr — stdout is reserved for MCP JSON-RPC framing.
+    console.error(`[Firefly III MCP Server] Server running locally on stdio`);
+    console.error(`[Firefly III MCP Server] Connected to Firefly III at: ${this.serverConfig.baseUrl}`);
+
+    // Log extra header names (values are never logged)
+    if (this.serverConfig.extraHeaders && Object.keys(this.serverConfig.extraHeaders).length > 0) {
+      console.error(`[Firefly III MCP Server] Extra headers configured: ${Object.keys(this.serverConfig.extraHeaders).join(', ')} (values not logged)`);
+    }
+
     // Log enabled tool tags if specified
     if (this.serverConfig.enableToolTags) {
-      console.log(`[Firefly III MCP Server] Enabled tool tags: ${this.serverConfig.enableToolTags.join(', ')}`);
+      console.error(`[Firefly III MCP Server] Enabled tool tags: ${this.serverConfig.enableToolTags.join(', ')}`);
     } else {
-      console.log(`[Firefly III MCP Server] Using default tool tags`);
+      console.error(`[Firefly III MCP Server] Using default tool tags`);
     }
   }
 }
