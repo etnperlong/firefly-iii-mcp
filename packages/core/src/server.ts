@@ -2,6 +2,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   ListToolsRequestSchema,
   Tool,
+  ToolAnnotations,
   CallToolRequestSchema,
   CallToolRequest,
   CallToolResult
@@ -11,6 +12,20 @@ import { generatedTools } from "./tools.js";
 import { Schema, Validator } from "@cfworker/json-schema";
 import { openapiSchemaToJsonSchema } from "@openapi-contrib/openapi-schema-to-json-schema";
 import { DEFAULT_PRESET_TAGS } from "./presets.js";
+
+/**
+ * Derive MCP tool annotations from the operation's HTTP method so clients can
+ * distinguish reads from writes and flag destructive calls: GET/HEAD are
+ * read-only, DELETE is destructive, and everything else is a non-destructive
+ * write. The Firefly III API is a closed system, so openWorldHint is false.
+ */
+function annotationsForMethod(method: string): ToolAnnotations {
+  const m = method.toUpperCase();
+  if (m === 'GET' || m === 'HEAD') {
+    return { readOnlyHint: true, openWorldHint: false };
+  }
+  return { readOnlyHint: false, destructiveHint: m === 'DELETE', openWorldHint: false };
+}
 
 export const executeApiTool = async (
   toolName: string,
@@ -236,6 +251,7 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
     const toolsForClient: Tool[] = generatedTools.filter(def => enableToolTags.length === 0 || enableToolTags.some(tag => def.tags.includes(tag))).map(def => ({
       name: def.name,
       description: def.description,
+      annotations: annotationsForMethod(def.method),
       inputSchema: {
         ...def.inputSchema,
         type: 'object',
