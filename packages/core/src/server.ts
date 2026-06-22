@@ -12,6 +12,48 @@ import { Schema, Validator } from "@cfworker/json-schema";
 import { openapiSchemaToJsonSchema } from "@openapi-contrib/openapi-schema-to-json-schema";
 import { DEFAULT_PRESET_TAGS } from "./presets.js";
 
+/**
+ * Anthropic (and some other LLM providers) reject tool input-schema property
+ * keys that don't match the pattern ^[a-zA-Z0-9_.-]{1,64}$. Firefly III's
+ * OpenAPI spec uses PHP-style array query parameters such as "accounts[]",
+ * "tags[]", "categories[]" etc. The "[" and "]" characters violate that
+ * pattern, which makes the API reject the *entire* tools payload with a 400
+ * and irrecoverably poisons the client session.
+ *
+ * We therefore expose a sanitized key to clients (the trailing "[]" stripped)
+ * while keeping the real query-parameter name ("accounts[]") for the upstream
+ * Firefly III request. See sanitizeInputSchema (used on tool listing) and the
+ * fallback lookup in executeApiTool.
+ */
+export const sanitizePropertyKey = (key: string): string =>
+  key.endsWith('[]') ? key.slice(0, -2) : key;
+
+// Recursively rewrite property keys (and matching "required" entries) so that
+// every key in the schema satisfies the provider key pattern.
+export const sanitizeInputSchema = (node: any): any => {
+  if (Array.isArray(node)) {
+    return node.map(sanitizeInputSchema);
+  }
+  if (node && typeof node === 'object') {
+    const out: Record<string, any> = {};
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'properties' && value && typeof value === 'object' && !Array.isArray(value)) {
+        const props: Record<string, any> = {};
+        for (const [propKey, propValue] of Object.entries(value as Record<string, any>)) {
+          props[sanitizePropertyKey(propKey)] = sanitizeInputSchema(propValue);
+        }
+        out[key] = props;
+      } else if (key === 'required' && Array.isArray(value)) {
+        out[key] = (value as string[]).map(sanitizePropertyKey);
+      } else {
+        out[key] = sanitizeInputSchema(value);
+      }
+    }
+    return out;
+  }
+  return node;
+};
+
 export const executeApiTool = async (
   toolName: string,
   definition: McpToolDefinition,
@@ -57,7 +99,10 @@ export const executeApiTool = async (
 
   // Apply parameters to the URL path, query, or headers
   definition.executionParameters.forEach((param) => {
-    const value = validatedArgs[param.name];
+    // The schema is exposed to clients with sanitized keys (e.g. "accounts"),
+    // but the upstream query parameter name keeps its brackets ("accounts[]").
+    // Look the value up under either form.
+    const value = validatedArgs[param.name] ?? validatedArgs[sanitizePropertyKey(param.name)];
     if (typeof value !== 'undefined' && value !== null) {
       if (param.in === 'path') {
         urlPath = urlPath.replace(`{${param.name}}`, encodeURIComponent(String(value)));
@@ -237,7 +282,7 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
       name: def.name,
       description: def.description,
       inputSchema: {
-        ...def.inputSchema,
+        ...sanitizeInputSchema(def.inputSchema),
         type: 'object',
       },
     }));
