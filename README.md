@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/etnperlong-firefly-iii-mcp-badge.png)](https://mseep.ai/app/etnperlong-firefly-iii-mcp)
+
 # Firefly III MCP Server
 
 This is a Model Context Protocol (MCP) server for Firefly III, a free and open-source personal finance manager. Through this MCP server, users can leverage AI tools to manage their Firefly III accounts and transactions, creating AI assistants for personal finance and accounting.
