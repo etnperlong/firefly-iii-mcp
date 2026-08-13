@@ -119,14 +119,14 @@ export class FireflyIIIMcpServer {
     await this.server.connect(transport);
 
     // Log server info
-    console.log(`[Firefly III MCP Server] Server running locally on stdio`);
-    console.log(`[Firefly III MCP Server] Connected to Firefly III at: ${this.serverConfig.baseUrl}`);
+    console.error(`[Firefly III MCP Server] Server running locally on stdio`);
+    console.error(`[Firefly III MCP Server] Connected to Firefly III at: ${this.serverConfig.baseUrl}`);
     
     // Log enabled tool tags if specified
     if (this.serverConfig.enableToolTags) {
-      console.log(`[Firefly III MCP Server] Enabled tool tags: ${this.serverConfig.enableToolTags.join(', ')}`);
+      console.error(`[Firefly III MCP Server] Enabled tool tags: ${this.serverConfig.enableToolTags.join(', ')}`);
     } else {
-      console.log(`[Firefly III MCP Server] Using default tool tags`);
+      console.error(`[Firefly III MCP Server] Using default tool tags`);
     }
   }
 }
