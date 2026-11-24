@@ -10,6 +10,8 @@ export type McpServerConfig = {
   baseUrl: string;
   pat: string;
   enableToolTags?: string[];
+  /** Enable compact response mode to strip null/empty fields, links, and redundant transaction metadata */
+  compactResponses?: boolean;
 }
 
 /** 

@@ -42,6 +42,11 @@ function parseCommandLineArgs() {
       short: 't',
       default: process.env.FIREFLY_III_TOOLS
     },
+    compact: {
+      type: 'boolean',
+      short: 'c',
+      default: ['true', '1', 'yes'].includes((process.env.FIREFLY_III_COMPACT ?? '').toLowerCase())
+    },
     help: {
       type: 'boolean',
       short: 'h'
@@ -73,6 +78,7 @@ Options:
   -l, --logLevel <level>  Log level: debug, info, warn, error (default: info)
   -s, --preset <name>     Tool preset to use (default, full, basic, budget, reporting, admin, automation)
   -t, --tools <list>      Comma-separated list of tool tags to enable
+  -c, --compact           Enable compact JSON responses (strips nulls, links, redundant metadata)
   -h, --help              Show this help information
 
 Environment variables:
@@ -82,6 +88,7 @@ Environment variables:
   LOG_LEVEL               Log level
   FIREFLY_III_PRESET      Tool preset to use
   FIREFLY_III_TOOLS       Comma-separated list of tool tags to enable
+  FIREFLY_III_COMPACT     Set to "true" to enable compact response mode
 
 Examples:
   firefly-iii-mcp-server --pat YOUR_PAT --baseUrl https://firefly.example.com
@@ -161,7 +168,8 @@ async function main() {
     pat,
     baseUrl,
     logLevel: logLevel as 'debug' | 'info' | 'warn' | 'error',
-    enableToolTags
+    enableToolTags,
+    compactResponses: args.compact
   });
 
   // Handle graceful shutdown

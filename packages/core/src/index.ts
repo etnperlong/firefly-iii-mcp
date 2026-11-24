@@ -9,6 +9,17 @@ export type { McpServerConfig, McpToolDefinition, CallToolRequestArguments } fro
 // Export server related functionality
 export { getServer, executeApiTool } from './server.js';
 
+// Export response compaction helpers
+export { compactResponseData, formatJsonResponse, withCompactParameters } from './compact.js';
+export type { CompactOptions } from './compact.js';
+
+// Export custom batch transaction update helper
+export {
+  batchUpdateTransactionsToolDefinition,
+  executeBatchUpdateTransactions,
+} from './batch-transactions.js';
+export type { BatchTransactionPatch, BatchItemResult } from './batch-transactions.js';
+
 // Export generated tools
 export { generatedTools } from './tools.js';
 
