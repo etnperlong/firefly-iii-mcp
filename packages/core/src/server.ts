@@ -134,35 +134,36 @@ export const executeApiTool = async (
   }
 
   if (response.status === 204 || response.status === 205) {
+    await response.body?.cancel();
+    const fallbackStatusText = response.status === 205 ? 'Reset Content' : 'No Content';
     return {
       content: [{
         type: 'text',
         text: JSON.stringify({
           success: true,
           status: response.status,
-          message: `Tool '${toolName}' completed successfully (${response.status} ${response.statusText || 'No Content'}).`,
+          message: `Tool '${toolName}' completed successfully (${response.status} ${response.statusText || fallbackStatusText}).`,
         }, null, 2),
       }],
     };
   }
 
   const responseType = response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
-  const responseText = await response.text();
-
-  if (!responseText.trim()) {
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({
-          success: true,
-          status: response.status,
-          message: `Tool '${toolName}' completed successfully with empty response body.`,
-        }, null, 2),
-      }],
-    };
-  }
 
   if (responseType?.includes('json')) {
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            status: response.status,
+            message: `Tool '${toolName}' completed successfully with empty response body.`,
+          }, null, 2),
+        }],
+      };
+    }
     try {
       const responseData = JSON.parse(responseText);
       return {
@@ -178,11 +179,31 @@ export const executeApiTool = async (
       });
     }
   } else if (responseType?.includes('text')) {
+    const responseText = await response.text();
     return {
       content: [{
         type: 'text', text: responseText
       }]
     };
+  }
+
+  // Avoid buffering binary payloads (e.g. application/octet-stream) as UTF-8
+  if (!responseType) {
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            status: response.status,
+            message: `Tool '${toolName}' completed successfully with empty response body.`,
+          }, null, 2),
+        }],
+      };
+    }
+  } else {
+    await response.body?.cancel();
   }
 
   // Default to error response for unsupported types
@@ -236,6 +257,7 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
         message: 'Please check your configuration and restart the server.',
       };
       return {
+        isError: true,
         content: [{
           type: "text", text: JSON.stringify(payload, null, 2)
         }],
@@ -275,6 +297,7 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
         message: 'Please check your configuration and restart the server.',
       };
       return {
+        isError: true,
         content: [{
           type: "text", text: JSON.stringify(payload, null, 2)
         }],

@@ -55,7 +55,7 @@ After deployment, you need to configure the following environment variables in y
 
 ### Optional Variables
 
-- `FIREFLY_III_PRESET`: Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+- `FIREFLY_III_PRESET`: Tool preset to use (default, full, basic, budget, reporting, admin, automation, household)
 - `FIREFLY_III_TOOLS`: Comma-separated list of tool tags to enable (overrides FIREFLY_III_PRESET if both are set)
 
 #### Available Presets
@@ -67,6 +67,7 @@ After deployment, you need to configure the following environment variables in y
 - `reporting`: Reporting and analysis tools
 - `admin`: Administration tools
 - `automation`: Automation-related tools
+- `household`: Household finance and automation tools (accounts, bills, budgets, categories, piggy banks, recurrences, rules, rule groups, search, summary, tags, transactions)
 
 ### Configuration Steps
 

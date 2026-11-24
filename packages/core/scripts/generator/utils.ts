@@ -248,6 +248,7 @@ export function mapOpenApiSchemaToJsonSchema(
 
     // Firefly III's RuleStore schema marks rule_group_id as required even though
     // either rule_group_id or rule_group_title satisfies the API contract.
+    // Omit the unconditional requirement without adding non-OpenAPI combinators.
     if (
       jsonSchema.required &&
       jsonSchema.required.includes('rule_group_id') &&
@@ -259,18 +260,6 @@ export function mapOpenApiSchemaToJsonSchema(
       );
       if (jsonSchema.required.length === 0) {
         delete jsonSchema.required;
-      }
-      const groupRequirement: OpenAPIV3.SchemaObject[] = [
-        { required: ['rule_group_id'] },
-        { required: ['rule_group_title'] },
-      ];
-      if (Array.isArray(jsonSchema.anyOf)) {
-        jsonSchema.allOf = [
-          ...(jsonSchema.allOf ?? []),
-          { anyOf: groupRequirement },
-        ];
-      } else {
-        jsonSchema.anyOf = groupRequirement;
       }
     }
   }

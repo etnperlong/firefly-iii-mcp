@@ -130,16 +130,17 @@ describe('Rules & Rule Groups tool definitions and presets', () => {
     }
   });
 
-  it('allows store_rule with either rule_group_id or rule_group_title', () => {
+  it('omits unconditional rule_group_id requirement from store_rule without adding non-OpenAPI combinators', () => {
     const storeRule = getToolDefinition('store_rule');
     const bodySchema = storeRule.inputSchema.properties?.requestBody as Record<string, unknown>;
     assert.ok(bodySchema);
     const required = bodySchema.required as string[];
     assert.ok(!required.includes('rule_group_id'), 'rule_group_id must not be unconditionally required');
-    assert.deepEqual(bodySchema.anyOf, [
-      { required: ['rule_group_id'] },
-      { required: ['rule_group_title'] },
-    ]);
+    assert.equal(bodySchema.anyOf, undefined, 'must not emit non-OpenAPI anyOf combinators');
+    assert.ok(required.includes('title'));
+    assert.ok(required.includes('trigger'));
+    assert.ok(required.includes('triggers'));
+    assert.ok(required.includes('actions'));
   });
 
   it('provides household preset with rules, rule_groups, budgets, and core tools without destructive data/admin tags', () => {
@@ -271,8 +272,14 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
         return;
       }
       if (req.pathname === '/api/v1/rules' && req.method === 'POST') {
+        const body = JSON.parse(req.body);
+        if (!body.rule_group_id && !body.rule_group_title) {
+          res.writeHead(422, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ message: 'Either rule_group_id or rule_group_title is mandatory.' }));
+          return;
+        }
         res.writeHead(200, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ data: { id: '11', type: 'rules', attributes: JSON.parse(req.body) } }));
+        res.end(JSON.stringify({ data: { id: '11', type: 'rules', attributes: body } }));
         return;
       }
       if (req.pathname === '/api/v1/rules/11' && req.method === 'GET') {
@@ -393,6 +400,29 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
       },
     });
     assert.ok(!storeByIdRes.isError);
+    // 5b. Store rule using BOTH rule_group_id and rule_group_title
+    const storeByBothRes = await client.callTool({
+      name: 'store_rule',
+      arguments: {
+        requestBody: {
+          title: 'Auto-categorize groceries both',
+          rule_group_id: '2',
+          rule_group_title: 'Bills',
+          trigger: 'store-journal',
+          triggers: [{ type: 'description_contains', value: 'ALDI' }],
+          actions: [{ type: 'set_category', value: 'Groceries' }],
+        },
+      },
+    });
+    assert.ok(!storeByBothRes.isError);
+
+    // 5c. Empty accounts[] array omits query param completely without trailing '?'
+    const emptyAccountsTestRes = await client.callTool({
+      name: 'test_rule',
+      arguments: { id: '11', 'accounts[]': [] },
+    });
+    assert.ok(!emptyAccountsTestRes.isError);
+    assert.equal(mock.requests[mock.requests.length - 1].url, '/api/v1/rules/11/test');
 
     // 6. Get, update, test, fire (204), delete (204) rule
     const getRuleRes = await client.callTool({ name: 'get_rule', arguments: { id: '11' } });
@@ -432,6 +462,17 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
 
   it('returns structured isError responses for validation failures, HTTP errors, bad bodies, and network errors', async () => {
     const mock = await startMockFireflyServer((req, res) => {
+      if (req.pathname === '/api/v1/rules' && req.method === 'POST') {
+        const body = JSON.parse(req.body);
+        if (!body.rule_group_id && !body.rule_group_title) {
+          res.writeHead(422, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ message: 'Either rule_group_id or rule_group_title is mandatory.' }));
+          return;
+        }
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ data: { id: '12', type: 'rules', attributes: body } }));
+        return;
+      }
       if (req.pathname === '/api/v1/rules/404') {
         res.writeHead(404, { 'content-type': 'application/json' });
         res.end(JSON.stringify({ message: 'Resource not found' }));
@@ -462,6 +503,11 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
         res.end('raw-bytes');
         return;
       }
+      if (req.pathname === '/api/v1/rules/binary-empty') {
+        res.writeHead(200, { 'content-type': 'application/octet-stream' });
+        res.end();
+        return;
+      }
       if (req.pathname === '/api/v1/rules/a%2Fb') {
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify({ encoded: true }));
@@ -479,8 +525,23 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
     });
     cleanups.push(close);
 
-    // Missing both rule_group_id and rule_group_title -> validation failure, zero HTTP calls
+    // Missing required title -> client validation failure, zero HTTP calls
     const beforeCount = mock.requests.length;
+    const missingTitleRes = await client.callTool({
+      name: 'store_rule',
+      arguments: {
+        requestBody: {
+          rule_group_id: '2',
+          trigger: 'store-journal',
+          triggers: [{ type: 'description_contains', value: 'foo' }],
+          actions: [{ type: 'set_category', value: 'bar' }],
+        },
+      },
+    });
+    assert.equal(missingTitleRes.isError, true);
+    assert.equal(mock.requests.length, beforeCount);
+
+    // Missing both rule_group_id and rule_group_title -> reaches Firefly III and returns 422 isError
     const missingGroupRes = await client.callTool({
       name: 'store_rule',
       arguments: {
@@ -493,12 +554,13 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
       },
     });
     assert.equal(missingGroupRes.isError, true);
-    assert.equal(mock.requests.length, beforeCount);
+    assert.equal(JSON.parse((missingGroupRes.content[0] as { text: string }).text).status, 422);
 
     // Missing required path param -> validation failure
+    const afterMissingGroupCount = mock.requests.length;
     const missingIdRes = await client.callTool({ name: 'fire_rule', arguments: {} });
     assert.equal(missingIdRes.isError, true);
-    assert.equal(mock.requests.length, beforeCount);
+    assert.equal(mock.requests.length, afterMissingGroupCount);
 
     // Unknown tool
     const unknownRes = await client.callTool({ name: 'nonexistent_tool', arguments: {} });
@@ -536,9 +598,33 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
     assert.ok(!textRes.isError);
     assert.equal((textRes.content[0] as { text: string }).text, 'plain text ok');
 
-    // Unsupported binary content-type
+    // Unsupported binary content-type (both non-empty and 0-byte)
     const binRes = await client.callTool({ name: 'get_rule', arguments: { id: 'binary' } });
     assert.equal(binRes.isError, true);
+    assert.match((binRes.content[0] as { text: string }).text, /application\/octet-stream/);
+
+    const binEmptyRes = await client.callTool({ name: 'get_rule', arguments: { id: 'binary-empty' } });
+    assert.equal(binEmptyRes.isError, true);
+    assert.match((binEmptyRes.content[0] as { text: string }).text, /application\/octet-stream/);
+
+    // 205 Reset Content with empty statusText falls back to 'Reset Content'
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response(null, { status: 205, statusText: '' });
+    try {
+      const fireRuleDef = getToolDefinition('fire_rule');
+      const resetRes = await executeApiTool(
+        'fire_rule',
+        fireRuleDef,
+        { id: '11' },
+        { baseUrl: 'http://127.0.0.1:9999', pat: 'tok' },
+      );
+      assert.ok(!resetRes.isError);
+      const resetPayload = JSON.parse((resetRes.content[0] as { text: string }).text);
+      assert.equal(resetPayload.status, 205);
+      assert.match(resetPayload.message, /205 Reset Content/);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
 
     // Network error via executeApiTool against dead port
     const getRuleDef = getToolDefinition('get_rule');
@@ -558,6 +644,7 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
     const { tools: noUrlTools } = await noUrl.client.listTools();
     assert.deepEqual(noUrlTools.map((t) => t.name), ['unavailable']);
     const noUrlCall = await noUrl.client.callTool({ name: 'unavailable', arguments: {} });
+    assert.equal(noUrlCall.isError, true);
     assert.match((noUrlCall.content[0] as { text: string }).text, /Unavailable/);
 
     const noPat = await createConnectedClient({ baseUrl: 'http://127.0.0.1:9999', pat: '' });
@@ -565,6 +652,7 @@ describe('MCP execution for Rules & Rule Groups and HTTP edge cases', () => {
     const { tools: noPatTools } = await noPat.client.listTools();
     assert.deepEqual(noPatTools.map((t) => t.name), ['unauthorized']);
     const noPatCall = await noPat.client.callTool({ name: 'unauthorized', arguments: {} });
+    assert.equal(noPatCall.isError, true);
     assert.match((noPatCall.content[0] as { text: string }).text, /Unauthorized/);
   });
 });

@@ -55,7 +55,7 @@
 
 ### 可选变量
 
-- `FIREFLY_III_PRESET`: 要使用的工具预设（default, full, basic, budget, reporting, admin, automation）
+- `FIREFLY_III_PRESET`: 要使用的工具预设（default, full, basic, budget, reporting, admin, automation, household）
 - `FIREFLY_III_TOOLS`: 启用的工具标签的逗号分隔列表（如果同时设置了 FIREFLY_III_PRESET，此项优先）
 
 #### 可用预设
@@ -67,6 +67,7 @@
 - `reporting`: 报告和分析工具
 - `admin`: 管理工具
 - `automation`: 自动化相关工具
+- `household`: 家庭财务和自动化工具（账户、账单、预算、分类、存钱罐、周期性交易、规则、规则组、搜索、摘要、标签、交易）
 
 ### 配置步骤
 

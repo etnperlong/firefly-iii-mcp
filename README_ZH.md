@@ -72,7 +72,7 @@
 FIREFLY_III_BASE_URL="YOUR_FIREFLY_III_INSTANCE_URL" # 例如，https://firefly.yourdomain.com
 FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
 # 可选：使用预设或自定义标签过滤工具
-FIREFLY_III_PRESET="default" # 可用选项：default, full, basic, budget, reporting, admin, automation
+FIREFLY_III_PRESET="default" # 可用选项：default, full, basic, budget, reporting, admin, automation, household
 # 或指定自定义工具标签（如果同时设置了预设，此项优先）
 FIREFLY_III_TOOLS="accounts,transactions,categories"
 ```
@@ -134,7 +134,7 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-b, --baseUrl <url>` - Firefly III 基础 URL
 - `-P, --port <number>` - 监听端口（默认：3000）
 - `-l, --logLevel <level>` - 日志级别：debug, info, warn, error（默认：info）
-- `-s, --preset <name>` - 使用的工具预设（default, full, basic, budget, reporting, admin, automation）
+- `-s, --preset <name>` - 使用的工具预设（default, full, basic, budget, reporting, admin, automation, household）
 - `-t, --tools <list>` - 启用的工具标签的逗号分隔列表
 
 #### 作为库使用
@@ -227,6 +227,7 @@ server.start().then(() => {
 - `reporting`: 报告和分析工具
 - `admin`: 管理工具
 - `automation`: 自动化相关工具
+- `household`: 家庭财务和自动化工具（账户、账单、预算、分类、存钱罐、周期性交易、规则、规则组、搜索、摘要、标签、交易）
 
 ## 开发指南
 
