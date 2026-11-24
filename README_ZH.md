@@ -21,6 +21,7 @@
 * 支持本地运行和云端部署
 * 兼容 Model Context Protocol 标准
 * 通过预设或自定义标签过滤工具，减少 Token 使用量
+* 支持紧凑响应模式（`--compact` / `FIREFLY_III_COMPACT=true`）与 `batch_update_transactions` 批量更新助手，显著降低 Token 消耗
 
 ## 前置条件
 

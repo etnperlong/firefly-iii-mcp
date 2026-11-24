@@ -28,6 +28,7 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-l, --logLevel <level>` - Log level: debug, info, warn, error (default: info)
 - `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation)
 - `-t, --tools <list>` - Comma-separated list of tool tags to enable
+- `-c, --compact` - Enable compact response mode (strips null fields, links, and redundant metadata)
 - `-h, --help` - Show help information
 
 #### Environment Variables

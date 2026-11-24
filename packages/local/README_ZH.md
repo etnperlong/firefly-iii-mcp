@@ -40,6 +40,8 @@ FIREFLY_III_BASE_URL=YOUR_FIREFLY_III_URL
 FIREFLY_III_PRESET=default
 # 可选：指定自定义工具标签（如果同时设置了FIREFLY_III_PRESET，此项优先）
 FIREFLY_III_TOOLS=accounts,transactions,categories
+# 可选：启用紧凑 JSON 响应模式
+FIREFLY_III_COMPACT=true
 ```
 
 然后运行：

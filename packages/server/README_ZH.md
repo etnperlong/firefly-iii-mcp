@@ -28,6 +28,7 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-l, --logLevel <level>` - 日志级别：debug, info, warn, error（默认：info）
 - `-s, --preset <name>` - 使用的工具预设（default, full, basic, budget, reporting, admin, automation）
 - `-t, --tools <list>` - 启用的工具标签的逗号分隔列表
+- `-c, --compact` - 启用紧凑响应模式（移除空值字段、链接和冗余元数据）
 - `-h, --help` - 显示帮助信息
 
 #### 环境变量

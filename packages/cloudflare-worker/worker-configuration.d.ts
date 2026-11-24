@@ -7,6 +7,7 @@ declare namespace Cloudflare {
 		FIREFLY_III_PAT: string;
 		FIREFLY_III_PRESET: string;
 		FIREFLY_III_TOOLS: string;
+		FIREFLY_III_COMPACT?: string;
 		MCP_OBJECT: DurableObjectNamespace<import("./src/index").FireflyIIIAgent>;
 	}
 }

@@ -59,6 +59,8 @@ export interface ServerConfig {
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
   /** Tool tags to enable */
   enableToolTags?: string[];
+  /** Enable compact response mode to reduce token usage */
+  compactResponses?: boolean;
 }
 
 /**
@@ -88,7 +90,8 @@ export function createServer(config: ServerConfig): McpServer {
     https: httpsOptions,
     corsOptions,
     logLevel = 'info',
-    enableToolTags
+    enableToolTags,
+    compactResponses
   } = config;
 
   // Set up logging based on log level
@@ -178,7 +181,8 @@ export function createServer(config: ServerConfig): McpServer {
         const mcpServerConfig: McpServerConfig = {
           baseUrl,
           pat,
-          enableToolTags
+          enableToolTags,
+          compactResponses
         };
         const server = getServer(mcpServerConfig);
         await server.connect(transport);
@@ -224,6 +228,7 @@ export function createServer(config: ServerConfig): McpServer {
     const mcpServerConfig: McpServerConfig = {
       baseUrl,
       pat,
+      compactResponses
     };
     const server = getServer(mcpServerConfig);
     await server.connect(transport);

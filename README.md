@@ -21,6 +21,7 @@ This project uses a Turborepo-managed monorepo structure, containing the followi
 * Support for both local and cloud deployment
 * Compatible with the Model Context Protocol standard
 * Tool filtering via presets or custom tags to reduce token usage
+* Optional compact response mode (`--compact` / `FIREFLY_III_COMPACT=true`) and `batch_update_transactions` helper for token-efficient workflows
 
 ## Prerequisites
 

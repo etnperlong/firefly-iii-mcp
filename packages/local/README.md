@@ -40,6 +40,8 @@ FIREFLY_III_BASE_URL=YOUR_FIREFLY_III_URL
 FIREFLY_III_PRESET=default
 # Optional: Specify custom tool tags (overrides FIREFLY_III_PRESET if both are set)
 FIREFLY_III_TOOLS=accounts,transactions,categories
+# Optional: Enable compact JSON response mode
+FIREFLY_III_COMPACT=true
 ```
 
 Then run:

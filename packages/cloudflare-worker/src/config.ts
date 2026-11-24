@@ -32,9 +32,16 @@ export const getMcpServerConfig = (c: Context<{
     }
   }
   
+  const compactRaw =
+    c.req.query('compact') ??
+    c.req.header('X-Firefly-III-Compact') ??
+    c.env.FIREFLY_III_COMPACT;
+  const compactResponses = ['true', '1', 'yes'].includes((compactRaw ?? '').toLowerCase());
+
   return {
     baseUrl,
     pat,
-    enableToolTags
+    enableToolTags,
+    compactResponses,
   };
 }
