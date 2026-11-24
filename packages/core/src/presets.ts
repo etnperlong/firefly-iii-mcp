@@ -111,6 +111,23 @@ export const TOOL_PRESETS: Record<string, string[]> = {
     "webhooks",
     "transactions",
   ],
+
+  // Household finance & automation preset
+  "household": [
+    "accounts",
+    "available_budgets",
+    "bills",
+    "budgets",
+    "categories",
+    "piggy_banks",
+    "recurrences",
+    "rule_groups",
+    "rules",
+    "search",
+    "summary",
+    "tags",
+    "transactions",
+  ],
 };
 
 /**

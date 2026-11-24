@@ -224,6 +224,7 @@ export function createServer(config: ServerConfig): McpServer {
     const mcpServerConfig: McpServerConfig = {
       baseUrl,
       pat,
+      enableToolTags,
     };
     const server = getServer(mcpServerConfig);
     await server.connect(transport);

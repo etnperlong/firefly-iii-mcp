@@ -18,7 +18,7 @@
     "prebuild": "npm run clean && npm run toolgen",
     "prepublishOnly": "npm run build",
     "lint": "eslint src/**/*.ts",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",

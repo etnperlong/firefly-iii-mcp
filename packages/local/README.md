@@ -70,6 +70,7 @@ Available presets:
 - `reporting`: Reporting and analysis tools
 - `admin`: Administration tools
 - `automation`: Automation-related tools
+- `household`: Household finance and automation tools (accounts, bills, budgets, categories, piggy banks, recurrences, rules, rule groups, search, summary, tags, transactions)
 
 #### Using Custom Tool Tags
 

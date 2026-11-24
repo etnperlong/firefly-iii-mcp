@@ -245,6 +245,34 @@ export function mapOpenApiSchemaToJsonSchema(
         delete jsonSchema.required;
       }
     }
+
+    // Firefly III's RuleStore schema marks rule_group_id as required even though
+    // either rule_group_id or rule_group_title satisfies the API contract.
+    if (
+      jsonSchema.required &&
+      jsonSchema.required.includes('rule_group_id') &&
+      jsonSchema.properties['rule_group_id'] &&
+      jsonSchema.properties['rule_group_title']
+    ) {
+      jsonSchema.required = jsonSchema.required.filter(
+        (field: string) => field !== 'rule_group_id'
+      );
+      if (jsonSchema.required.length === 0) {
+        delete jsonSchema.required;
+      }
+      const groupRequirement: OpenAPIV3.SchemaObject[] = [
+        { required: ['rule_group_id'] },
+        { required: ['rule_group_title'] },
+      ];
+      if (Array.isArray(jsonSchema.anyOf)) {
+        jsonSchema.allOf = [
+          ...(jsonSchema.allOf ?? []),
+          { anyOf: groupRequirement },
+        ];
+      } else {
+        jsonSchema.anyOf = groupRequirement;
+      }
+    }
   }
 
   // Recursively process nested schemas

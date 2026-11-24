@@ -8172,7 +8172,6 @@ export const generatedTools: McpToolDefinition[] = [
           "type": "object",
           "required": [
             "title",
-            "rule_group_id",
             "trigger",
             "triggers",
             "actions"
@@ -8377,6 +8376,18 @@ export const generatedTools: McpToolDefinition[] = [
               }
             }
           },
+          "anyOf": [
+            {
+              "required": [
+                "rule_group_id"
+              ]
+            },
+            {
+              "required": [
+                "rule_group_title"
+              ]
+            }
+          ],
           "description": "JSON array or key=value pairs with the necessary rule information. See the model for the exact specifications."
         }
       },
