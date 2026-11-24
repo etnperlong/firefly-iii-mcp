@@ -72,7 +72,7 @@ Set the following environment variables before running the server:
 FIREFLY_III_BASE_URL="YOUR_FIREFLY_III_INSTANCE_URL" # e.g., https://firefly.yourdomain.com
 FIREFLY_III_PAT="YOUR_FIREFLY_III_PAT"
 # Optional: Filter tools using preset or custom tags
-FIREFLY_III_PRESET="default" # Available: default, full, basic, budget, reporting, admin, automation
+FIREFLY_III_PRESET="default" # Available: default, full, basic, budget, reporting, admin, automation, household
 # Or specify custom tool tags (overrides preset if both are set)
 FIREFLY_III_TOOLS="accounts,transactions,categories"
 ```
@@ -134,7 +134,7 @@ Command-line options:
 - `-b, --baseUrl <url>` - Firefly III Base URL
 - `-P, --port <number>` - Port to listen on (default: 3000)
 - `-l, --logLevel <level>` - Log level: debug, info, warn, error (default: info)
-- `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+- `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation, household)
 - `-t, --tools <list>` - Comma-separated list of tool tags to enable
 
 #### As a Library
@@ -227,6 +227,7 @@ You can filter which tools are exposed to the MCP client to reduce token usage a
 - `reporting`: Reporting and analysis tools
 - `admin`: Administration tools
 - `automation`: Automation-related tools
+- `household`: Household finance and automation tools (accounts, bills, budgets, categories, piggy banks, recurrences, rules, rule groups, search, summary, tags, transactions)
 
 ## Development Guide
 

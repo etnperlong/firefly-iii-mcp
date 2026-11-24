@@ -12,6 +12,14 @@ import { Schema, Validator } from "@cfworker/json-schema";
 import { openapiSchemaToJsonSchema } from "@openapi-contrib/openapi-schema-to-json-schema";
 import { DEFAULT_PRESET_TAGS } from "./presets.js";
 
+const createErrorResult = (payload: Record<string, unknown>): CallToolResult => ({
+  isError: true,
+  content: [{
+    type: 'text',
+    text: JSON.stringify(payload, null, 2),
+  }],
+});
+
 export const executeApiTool = async (
   toolName: string,
   definition: McpToolDefinition,
@@ -29,29 +37,21 @@ export const executeApiTool = async (
       validatedArgs = argsToParse;
     } else {
       const errors = validatedResult.errors;
-      return {
-        content: [{
-          type: 'text', text: JSON.stringify({
-            message: `Invalid arguments for tool '${toolName}'`,
-            errors: errors,
-          }, null, 2)
-        }]
-      };
+      return createErrorResult({
+        message: `Invalid arguments for tool '${toolName}'`,
+        errors: errors,
+      });
     }
   } catch (error: unknown) {
-    return {
-      content: [{
-        type: 'text', text: JSON.stringify({
-          message: `Error validating arguments for tool '${toolName}'`,
-          error: error,
-        }, null, 2)
-      }]
-    }
+    return createErrorResult({
+      message: `Error validating arguments for tool '${toolName}'`,
+      error: error instanceof Error ? error.message : error,
+    });
   }
 
   // Prepare URL, query parameters, headers, and request body
   let urlPath = definition.pathTemplate;
-  const queryParams: Record<string, any> = {};
+  const searchParams = new URLSearchParams();
   const headers: Record<string, string> = { 'Accept': 'application/json' };
   let requestBodyData: unknown = undefined;
 
@@ -63,7 +63,16 @@ export const executeApiTool = async (
         urlPath = urlPath.replace(`{${param.name}}`, encodeURIComponent(String(value)));
       }
       else if (param.in === 'query') {
-        queryParams[param.name] = value;
+        if (Array.isArray(value)) {
+          // Firefly III expects repeated bracketed query params (e.g. accounts[]=1&accounts[]=2)
+          for (const item of value) {
+            if (typeof item !== 'undefined' && item !== null) {
+              searchParams.append(param.name, String(item));
+            }
+          }
+        } else {
+          searchParams.append(param.name, String(value));
+        }
       }
       else if (param.in === 'header') {
         headers[param.name.toLowerCase()] = String(value);
@@ -73,7 +82,9 @@ export const executeApiTool = async (
 
   // Ensure all path parameters are resolved
   if (urlPath.includes('{')) {
-    throw new Error(`Failed to resolve path parameters: ${urlPath}`);
+    return createErrorResult({
+      message: `Failed to resolve path parameters: ${urlPath}`,
+    });
   }
 
   // Handle request body if needed
@@ -89,38 +100,83 @@ export const executeApiTool = async (
   headers['Authorization'] = `Bearer ${pat}`;
 
   // Construct the full URL
-  const requestEndpoint = `${baseUrl}/api${urlPath}`
-  const requestUrl = queryParams ? `${requestEndpoint}?${new URLSearchParams(queryParams).toString()}` : requestEndpoint;
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+  const requestEndpoint = `${normalizedBaseUrl}/api${urlPath}`;
+  const queryString = searchParams.toString();
+  const requestUrl = queryString ? `${requestEndpoint}?${queryString}` : requestEndpoint;
   const requestMethod = definition.method.toUpperCase();
 
   // Log request info to stderr (doesn't affect MCP output)
   console.debug(`Executing tool "${toolName}": ${requestMethod} ${requestEndpoint}`);
 
-  const response = await fetch(requestUrl, {
-    method: definition.method.toUpperCase(),
-    headers: headers,
-    body: requestBodyData ? JSON.stringify(requestBodyData) : undefined,
-  });
+  let response: Response;
+  try {
+    response = await fetch(requestUrl, {
+      method: requestMethod,
+      headers: headers,
+      body: requestBodyData !== undefined ? JSON.stringify(requestBodyData) : undefined,
+    });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return createErrorResult({
+      message: `Network error executing tool '${toolName}': ${errorMessage}`,
+      error: errorMessage,
+    });
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
+    return createErrorResult({
+      message: `Error executing tool '${toolName}': ${response.status} ${response.statusText}`,
+      status: response.status,
+      error: errorText,
+    });
+  }
+
+  if (response.status === 204 || response.status === 205) {
+    await response.body?.cancel();
+    const fallbackStatusText = response.status === 205 ? 'Reset Content' : 'No Content';
     return {
       content: [{
-        type: 'text', text: JSON.stringify({
-          message: `Error executing tool '${toolName}': ${response.status} ${response.statusText}`,
-          error: errorText,
-        }, null, 2)
-      }]
-    }
+        type: 'text',
+        text: JSON.stringify({
+          success: true,
+          status: response.status,
+          message: `Tool '${toolName}' completed successfully (${response.status} ${response.statusText || fallbackStatusText}).`,
+        }, null, 2),
+      }],
+    };
   }
 
   const responseType = response.headers.get('content-type')?.split(';')[0].trim().toLowerCase();
+
   if (responseType?.includes('json')) {
-    const responseData = await response.json();
-    return {
-      content: [{
-        type: 'text', text: JSON.stringify(responseData, null, 2)
-      }]
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            status: response.status,
+            message: `Tool '${toolName}' completed successfully with empty response body.`,
+          }, null, 2),
+        }],
+      };
+    }
+    try {
+      const responseData = JSON.parse(responseText);
+      return {
+        content: [{
+          type: 'text', text: JSON.stringify(responseData, null, 2)
+        }]
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return createErrorResult({
+        message: `Invalid JSON response from tool '${toolName}': ${errorMessage}`,
+        error: responseText,
+      });
     }
   } else if (responseType?.includes('text')) {
     const responseText = await response.text();
@@ -128,18 +184,33 @@ export const executeApiTool = async (
       content: [{
         type: 'text', text: responseText
       }]
-    }
+    };
   }
 
-  // Default to text response for unsupported types
-  return {
-    content: [{
-      type: 'text', text: JSON.stringify({
-        error: `Unsupported response type: ${responseType}`,
-        message: `Unsupported response type: ${responseType}`,
-      }, null, 2)
-    }]
+  // Avoid buffering binary payloads (e.g. application/octet-stream) as UTF-8
+  if (!responseType) {
+    const responseText = await response.text();
+    if (!responseText.trim()) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            status: response.status,
+            message: `Tool '${toolName}' completed successfully with empty response body.`,
+          }, null, 2),
+        }],
+      };
+    }
+  } else {
+    await response.body?.cancel();
   }
+
+  // Default to error response for unsupported types
+  return createErrorResult({
+    error: `Unsupported response type: ${responseType}`,
+    message: `Unsupported response type: ${responseType}`,
+  });
 }
 
 /**
@@ -181,13 +252,16 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
       return { tools: [unavailableTool] }
     })
     server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest): Promise<CallToolResult> => {
+      const payload = {
+        error: 'Unavailable',
+        message: 'Please check your configuration and restart the server.',
+      };
       return {
+        isError: true,
         content: [{
-          type: "text", text: JSON.stringify({
-            error: 'Unavailable',
-            message: 'Please check your configuration and restart the server.',
-          }, null, 2)
-        }]
+          type: "text", text: JSON.stringify(payload, null, 2)
+        }],
+        structuredContent: payload,
       };
     });
     return server;
@@ -218,13 +292,16 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
       return { tools: [unauthorizedTool] }
     })
     server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest): Promise<CallToolResult> => {
+      const payload = {
+        error: 'Unauthorized',
+        message: 'Please check your configuration and restart the server.',
+      };
       return {
+        isError: true,
         content: [{
-          type: "text", text: JSON.stringify({
-            error: 'Unauthorized',
-            message: 'Please check your configuration and restart the server.',
-          }, null, 2)
-        }]
+          type: "text", text: JSON.stringify(payload, null, 2)
+        }],
+        structuredContent: payload,
       };
     });
     return server;
@@ -248,7 +325,10 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
     const toolDefinition = generatedTools.find(tool => tool.name === toolName);
     if (!toolDefinition) {
       console.error(`Error: Unknown tool requested: ${toolName}`);
-      return { content: [{ type: "text", text: `Error: Unknown tool requested: ${toolName}` }] };
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error: Unknown tool requested: ${toolName}` }],
+      };
     }
     return await executeApiTool(toolName, toolDefinition, toolArgs ?? {}, serverConfig);
   });

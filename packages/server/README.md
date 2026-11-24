@@ -26,7 +26,7 @@ npx @firefly-iii-mcp/server --pat YOUR_PAT --baseUrl YOUR_FIREFLY_III_URL
 - `-b, --baseUrl <url>` - Firefly III Base URL
 - `-P, --port <number>` - Port to listen on (default: 3000)
 - `-l, --logLevel <level>` - Log level: debug, info, warn, error (default: info)
-- `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+- `-s, --preset <name>` - Tool preset to use (default, full, basic, budget, reporting, admin, automation, household)
 - `-t, --tools <list>` - Comma-separated list of tool tags to enable
 - `-h, --help` - Show help information
 
@@ -65,6 +65,7 @@ Available presets:
 - `reporting`: Reporting and analysis tools
 - `admin`: Administration tools
 - `automation`: Automation-related tools
+- `household`: Household finance and automation tools (accounts, bills, budgets, categories, piggy banks, recurrences, rules, rule groups, search, summary, tags, transactions)
 
 ##### Using Custom Tool Tags
 

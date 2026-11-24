@@ -8172,7 +8172,6 @@ export const generatedTools: McpToolDefinition[] = [
           "type": "object",
           "required": [
             "title",
-            "rule_group_id",
             "trigger",
             "triggers",
             "actions"

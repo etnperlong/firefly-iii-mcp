@@ -71,7 +71,7 @@ Options:
   -b, --baseUrl <url>     Firefly III Base URL
   -P, --port <number>     Port to listen on (default: 3000)
   -l, --logLevel <level>  Log level: debug, info, warn, error (default: info)
-  -s, --preset <name>     Tool preset to use (default, full, basic, budget, reporting, admin, automation)
+  -s, --preset <name>     Tool preset to use (${getAvailablePresets().join(', ')})
   -t, --tools <list>      Comma-separated list of tool tags to enable
   -h, --help              Show this help information
 
