@@ -10,13 +10,14 @@ import {
 } from '../src/index.js';
 
 interface SplitFixture {
-  transaction_journal_id: string;
+  transaction_journal_id?: string | null;
   tags?: string[];
 }
 
 interface MockTxStore {
   [txId: string]: {
     splits: SplitFixture[];
+    getRawBody?: string;
     putStatus?: number;
     putError?: string;
     delayMs?: number;
@@ -73,6 +74,10 @@ describe('batch_update_transactions helper', () => {
 
         if (req.method === 'GET') {
           res.writeHead(200, { 'content-type': 'application/json' });
+          if (entry.getRawBody !== undefined) {
+            res.end(entry.getRawBody);
+            return;
+          }
           res.end(
             JSON.stringify({
               data: {
@@ -226,8 +231,10 @@ describe('batch_update_transactions helper', () => {
       },
       '3': { splits: [{ transaction_journal_id: '301' }], putStatus: 422, putError: 'Invalid category' },
       '4': { splits: [{ transaction_journal_id: '401' }] },
+      '5': { splits: [], getRawBody: 'not-valid-json' },
+      '6': { splits: [{ transaction_journal_id: null }] },
     };
-    const { client } = await setupMockServer(store);
+    const { client, requests } = await setupMockServer(store);
 
     // Partial failure with continue_on_error: true (default)
     const partialRes = await client.callTool({
@@ -241,6 +248,9 @@ describe('batch_update_transactions helper', () => {
           { id: '404', category_name: 'MissingTx' }, // GET 404
           { id: '4', tags: ['a'], add_tags: ['b'] }, // mutually exclusive
           { id: '4' }, // no patch fields
+          { id: '4', add_tags: [], remove_tags: [] }, // empty tag arrays only -> no-op
+          { id: '5', category_name: 'BadJsonGet' }, // non-JSON 200 GET body
+          { id: '6', category_name: 'MissingJournalId' }, // missing transaction_journal_id on split
         ],
       },
     });
@@ -248,7 +258,7 @@ describe('batch_update_transactions helper', () => {
     assert.ok(!partialRes.isError); // 1 item succeeded
     const partial = JSON.parse((partialRes.content[0] as { text: string }).text);
     assert.equal(partial.succeeded, 1);
-    assert.equal(partial.failed, 6);
+    assert.equal(partial.failed, 9);
     assert.equal(partial.skipped, 0);
     assert.match(partial.results[1].error, /has 2 splits/);
     assert.match(partial.results[2].error, /does not contain split '999'/);
@@ -256,12 +266,16 @@ describe('batch_update_transactions helper', () => {
     assert.match(partial.results[4].error, /404/);
     assert.match(partial.results[5].error, /Cannot combine/);
     assert.match(partial.results[6].error, /at least one field/);
+    assert.match(partial.results[7].error, /at least one field/);
+    assert.match(partial.results[8].error, /Invalid JSON response fetching transaction '5'/);
+    assert.match(partial.results[9].error, /without a transaction_journal_id/);
 
-    // Early stop with continue_on_error: false and concurrency: 1
+    // Early stop with continue_on_error: false using DEFAULT concurrency (omitted):
+    // must execute sequentially and NOT touch transaction '1' after '404' fails.
+    const reqCountBeforeAbort = requests.length;
     const abortRes = await client.callTool({
       name: 'batch_update_transactions',
       arguments: {
-        concurrency: 1,
         continue_on_error: false,
         compact: true,
         updates: [
@@ -278,6 +292,8 @@ describe('batch_update_transactions helper', () => {
     assert.equal(aborted.failed, 1);
     assert.equal(aborted.skipped, 1);
     assert.equal(aborted.results[1].status, 'skipped');
+    const abortRequests = requests.slice(reqCountBeforeAbort);
+    assert.equal(abortRequests.some((r) => r.url === '/api/v1/transactions/1'), false);
   });
 
   it('respects bounded concurrency, rejects invalid arguments, and handles network failures', async () => {
@@ -314,6 +330,23 @@ describe('batch_update_transactions helper', () => {
       arguments: { concurrency: 99, updates: [{ id: '1', category_name: 'Food' }] },
     });
     assert.equal(badConcurrency.isError, true);
+
+    const typoField = await client.callTool({
+      name: 'batch_update_transactions',
+      arguments: { updates: [{ id: '1', catgory_name: 'Food' }] },
+    });
+    assert.equal(typoField.isError, true);
+
+    const overMaxBatch = await client.callTool({
+      name: 'batch_update_transactions',
+      arguments: {
+        updates: Array.from({ length: 101 }, (_, i) => ({
+          id: String(i + 1),
+          category_name: 'Food',
+        })),
+      },
+    });
+    assert.equal(overMaxBatch.isError, true);
 
     // Network error against unreachable port
     const netErr = await executeBatchUpdateTransactions(

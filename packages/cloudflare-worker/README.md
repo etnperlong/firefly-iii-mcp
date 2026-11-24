@@ -57,6 +57,7 @@ After deployment, you need to configure the following environment variables in y
 
 - `FIREFLY_III_PRESET`: Tool preset to use (default, full, basic, budget, reporting, admin, automation)
 - `FIREFLY_III_TOOLS`: Comma-separated list of tool tags to enable (overrides FIREFLY_III_PRESET if both are set)
+- `FIREFLY_III_COMPACT`: Set to `true` to enable compact JSON response mode (can also pass `?compact=true` or `X-Firefly-III-Compact: true`)
 
 #### Available Presets
 

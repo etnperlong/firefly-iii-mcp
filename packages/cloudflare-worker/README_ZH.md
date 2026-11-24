@@ -57,6 +57,7 @@
 
 - `FIREFLY_III_PRESET`: 要使用的工具预设（default, full, basic, budget, reporting, admin, automation）
 - `FIREFLY_III_TOOLS`: 启用的工具标签的逗号分隔列表（如果同时设置了 FIREFLY_III_PRESET，此项优先）
+- `FIREFLY_III_COMPACT`: 设置为 `true` 以启用紧凑 JSON 响应模式（也可使用 `?compact=true` 或 `X-Firefly-III-Compact: true` 请求头）
 
 #### 可用预设
 

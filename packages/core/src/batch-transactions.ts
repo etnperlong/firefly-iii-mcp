@@ -79,6 +79,7 @@ export const batchUpdateTransactionsToolDefinition: McpToolDefinition = {
         description: `List of transaction updates to apply (1 to ${MAX_BATCH_SIZE} items).`,
         items: {
           type: 'object',
+          additionalProperties: false,
           required: ['id'],
           properties: {
             id: {
@@ -216,8 +217,16 @@ export const batchUpdateTransactionsToolDefinition: McpToolDefinition = {
   operationId: 'batch_update_transactions',
 };
 
+const batchValidator = new Validator(
+  openapiSchemaToJsonSchema(batchUpdateTransactionsToolDefinition.inputSchema) as Schema,
+  '4',
+);
+
 function hasAnyPatchField(item: BatchTransactionPatch): boolean {
-  if (item.add_tags !== undefined || item.remove_tags !== undefined) {
+  if (
+    (Array.isArray(item.add_tags) && item.add_tags.length > 0) ||
+    (Array.isArray(item.remove_tags) && item.remove_tags.length > 0)
+  ) {
     return true;
   }
   return PATCHABLE_SPLIT_FIELDS.some((key) => item[key] !== undefined);
@@ -285,28 +294,12 @@ async function applyUpdatesForTransactionId(
     Authorization: `Bearer ${options.pat}`,
   };
 
-  let existingPayload: { data?: { attributes?: { transactions?: ExistingSplit[] } } };
+  let getResponse: Response;
   try {
-    const getResponse = await fetch(txEndpoint, {
+    getResponse = await fetch(txEndpoint, {
       method: 'GET',
       headers: commonHeaders,
     });
-    if (!getResponse.ok) {
-      const errorText = await getResponse.text();
-      for (const entry of validItems) {
-        results.set(entry.index, {
-          index: entry.index,
-          id: txId,
-          transaction_journal_id: entry.patch.transaction_journal_id,
-          status: 'error',
-          error: `Failed to fetch transaction '${txId}': ${getResponse.status} ${getResponse.statusText}${errorText ? ` - ${errorText}` : ''}`,
-        });
-      }
-      return indexedUpdates.map((e) => results.get(e.index)!);
-    }
-    existingPayload = (await getResponse.json()) as {
-      data?: { attributes?: { transactions?: ExistingSplit[] } };
-    };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     for (const entry of validItems) {
@@ -321,6 +314,39 @@ async function applyUpdatesForTransactionId(
     return indexedUpdates.map((e) => results.get(e.index)!);
   }
 
+  if (!getResponse.ok) {
+    const errorText = await getResponse.text();
+    for (const entry of validItems) {
+      results.set(entry.index, {
+        index: entry.index,
+        id: txId,
+        transaction_journal_id: entry.patch.transaction_journal_id,
+        status: 'error',
+        error: `Failed to fetch transaction '${txId}': ${getResponse.status} ${getResponse.statusText}${errorText ? ` - ${errorText}` : ''}`,
+      });
+    }
+    return indexedUpdates.map((e) => results.get(e.index)!);
+  }
+
+  let existingPayload: { data?: { attributes?: { transactions?: ExistingSplit[] } } };
+  try {
+    existingPayload = (await getResponse.json()) as {
+      data?: { attributes?: { transactions?: ExistingSplit[] } };
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    for (const entry of validItems) {
+      results.set(entry.index, {
+        index: entry.index,
+        id: txId,
+        transaction_journal_id: entry.patch.transaction_journal_id,
+        status: 'error',
+        error: `Invalid JSON response fetching transaction '${txId}': ${message}`,
+      });
+    }
+    return indexedUpdates.map((e) => results.get(e.index)!);
+  }
+
   const existingSplits = existingPayload?.data?.attributes?.transactions;
   if (!Array.isArray(existingSplits) || existingSplits.length === 0) {
     for (const entry of validItems) {
@@ -330,6 +356,26 @@ async function applyUpdatesForTransactionId(
         transaction_journal_id: entry.patch.transaction_journal_id,
         status: 'error',
         error: `Transaction '${txId}' response does not contain any transaction splits.`,
+      });
+    }
+    return indexedUpdates.map((e) => results.get(e.index)!);
+  }
+
+  if (
+    existingSplits.some(
+      (split) =>
+        split.transaction_journal_id === undefined ||
+        split.transaction_journal_id === null ||
+        String(split.transaction_journal_id).length === 0,
+    )
+  ) {
+    for (const entry of validItems) {
+      results.set(entry.index, {
+        index: entry.index,
+        id: txId,
+        transaction_journal_id: entry.patch.transaction_journal_id,
+        status: 'error',
+        error: `Transaction '${txId}' contains a split without a transaction_journal_id.`,
       });
     }
     return indexedUpdates.map((e) => results.get(e.index)!);
@@ -448,6 +494,8 @@ async function applyUpdatesForTransactionId(
       return indexedUpdates.map((e) => results.get(e.index)!);
     }
 
+    await putResponse.body?.cancel();
+
     for (const { entry, journalId } of appliedEntries) {
       results.set(entry.index, {
         index: entry.index,
@@ -482,11 +530,7 @@ export async function executeBatchUpdateTransactions(
   const argsToParse =
     typeof toolArgs === 'object' && toolArgs !== null ? toolArgs : {};
 
-  const schema = openapiSchemaToJsonSchema(
-    batchUpdateTransactionsToolDefinition.inputSchema,
-  );
-  const validator = new Validator(schema as Schema, '4');
-  const validated = validator.validate(argsToParse);
+  const validated = batchValidator.validate(argsToParse);
 
   if (!validated.valid) {
     return {
@@ -571,7 +615,9 @@ export async function executeBatchUpdateTransactions(
     }
   };
 
-  const workerCount = Math.min(concurrency, groupEntries.length);
+  // Run sequentially when continue_on_error is false so no extra in-flight mutations execute after an error.
+  const effectiveConcurrency = continueOnError ? concurrency : 1;
+  const workerCount = Math.min(effectiveConcurrency, groupEntries.length);
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
 
   for (let i = 0; i < updates.length; i++) {

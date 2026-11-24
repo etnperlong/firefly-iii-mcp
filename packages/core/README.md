@@ -38,6 +38,7 @@ await server.connect(transport);
 - Provides complete interaction with the Firefly III API
 - Implements the Model Context Protocol standard
 - Supports multiple transport methods (stdio, HTTP, etc.)
+- Optional compact response mode (`compactResponses`) / per-tool `compact` and `fields` filtering, plus `batch_update_transactions` helper
 
 ## Requirements
 

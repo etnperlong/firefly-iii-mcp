@@ -263,6 +263,125 @@ describe('compactResponseData and formatJsonResponse', () => {
     assert.equal(listTx.inputSchema.properties?.compact, undefined);
     assert.equal(listTx.inputSchema.properties?.fields, undefined);
   });
+
+  it('treats fields as an explicit allowlist even when compact: true, preserving requested metadata keys', () => {
+    const listEnvelope = {
+      data: [makeRealisticTransaction(1)],
+      meta: { pagination: { total: 1 } },
+      links: { self: 'x' },
+    };
+
+    const projected = compactResponseData(listEnvelope, {
+      compact: true,
+      fields: ['currency_id', 'currency_code', 'amount', 'tags', 'order', 'has_attachments', 'created_at'],
+    }) as {
+      data: Array<{
+        attributes: {
+          created_at?: string;
+          transactions: Array<Record<string, unknown>>;
+        };
+      }>;
+    };
+
+    assert.equal(projected.data[0].attributes.created_at, '2026-01-15T10:00:00+00:00');
+    assert.deepEqual(projected.data[0].attributes.transactions[0], {
+      transaction_journal_id: '10',
+      order: 0,
+      currency_id: '1',
+      currency_code: 'EUR',
+      amount: '42.50',
+      tags: [],
+      has_attachments: false,
+    });
+  });
+
+  it('preserves non-transaction recurrences structure, resource relationships/meta, and compacts accounts/rules', () => {
+    const recurrencePayload = {
+      data: [
+        {
+          id: '5',
+          type: 'recurrences',
+          attributes: {
+            title: 'Monthly Rent',
+            active: true,
+            notes: null,
+            transactions: [
+              { id: '50', description: 'Rent', amount: '1200.00', currency_code: 'EUR' },
+            ],
+          },
+          relationships: {
+            piggy_bank: { data: { id: '3', type: 'piggy_banks' } },
+          },
+          meta: { custom: 'keep-me' },
+          links: { self: 'https://firefly.example.com/api/v1/recurrences/5' },
+        },
+      ],
+    };
+
+    // Only title requested -> must NOT attach transactions array when type !== 'transactions'
+    const projectedRecurrence = compactResponseData(recurrencePayload, {
+      fields: ['title'],
+    }) as {
+      data: Array<{
+        attributes: Record<string, unknown>;
+        relationships?: unknown;
+        meta?: unknown;
+        links?: unknown;
+      }>;
+    };
+    assert.deepEqual(projectedRecurrence.data[0].attributes, { title: 'Monthly Rent' });
+    assert.deepEqual(projectedRecurrence.data[0].relationships, {
+      piggy_bank: { data: { id: '3', type: 'piggy_banks' } },
+    });
+    assert.deepEqual(projectedRecurrence.data[0].meta, { custom: 'keep-me' });
+    assert.equal(projectedRecurrence.data[0].links, undefined);
+
+    // Explicitly requesting transactions on recurrence preserves recurrence transaction objects untouched
+    const withRecurrenceTx = compactResponseData(recurrencePayload, {
+      fields: ['title', 'transactions'],
+    }) as { data: Array<{ attributes: { transactions: Array<Record<string, unknown>> } }> };
+    assert.deepEqual(withRecurrenceTx.data[0].attributes.transactions, [
+      { id: '50', description: 'Rent', amount: '1200.00', currency_code: 'EUR' },
+    ]);
+
+    // Compact mode on accounts & rules preserves relationships/meta and strips nulls/links
+    const accountsAndRules = {
+      data: [
+        {
+          id: '1',
+          type: 'accounts',
+          attributes: { name: 'Checking', type: 'asset', iban: null, current_balance: '500.00' },
+          relationships: { currency: { data: { id: '1', type: 'currencies' } } },
+          meta: { source: 'bank' },
+          links: { self: 'x' },
+        },
+        {
+          id: '9',
+          type: 'rules',
+          attributes: { title: 'Groceries', description: null, active: true },
+          links: { self: 'y' },
+        },
+      ],
+      links: { self: 'root' },
+    };
+    const compactedResources = compactResponseData(accountsAndRules, { compact: true }) as {
+      data: Array<Record<string, unknown>>;
+      links?: unknown;
+    };
+    assert.equal(compactedResources.links, undefined);
+    assert.deepEqual(compactedResources.data[0], {
+      id: '1',
+      type: 'accounts',
+      attributes: { name: 'Checking', type: 'asset', current_balance: '500.00' },
+      relationships: { currency: { data: { id: '1', type: 'currencies' } } },
+      meta: { source: 'bank' },
+    });
+    assert.deepEqual(compactedResources.data[1], {
+      id: '9',
+      type: 'rules',
+      attributes: { title: 'Groceries', active: true },
+    });
+  });
 });
 
 describe('MCP integration for compact response mode and field pruning', () => {
@@ -313,16 +432,22 @@ describe('MCP integration for compact response mode and field pruning', () => {
     return { client, recordedUrls, baseUrl };
   }
 
-  it('exposes compact and fields only on GET tools and omits them from upstream query params', async () => {
-    const { client, recordedUrls } = await startMockAndClient();
+  it('exposes compact and fields only on JSON GET tools (excluding download/export/write tools) and omits them from upstream query params', async () => {
+    const { client, recordedUrls } = await startMockAndClient({ enableToolTags: [] });
     const { tools } = await client.listTools();
 
     const listTx = tools.find((t) => t.name === 'list_transaction');
     const storeTx = tools.find((t) => t.name === 'store_transaction');
+    const downloadAttachment = tools.find((t) => t.name === 'download_attachment');
+    const exportTransactions = tools.find((t) => t.name === 'export_transactions');
     assert.ok(listTx?.inputSchema.properties?.compact);
     assert.ok(listTx?.inputSchema.properties?.fields);
     assert.equal(storeTx?.inputSchema.properties?.compact, undefined);
     assert.equal(storeTx?.inputSchema.properties?.fields, undefined);
+    assert.equal(downloadAttachment?.inputSchema.properties?.compact, undefined);
+    assert.equal(downloadAttachment?.inputSchema.properties?.fields, undefined);
+    assert.equal(exportTransactions?.inputSchema.properties?.compact, undefined);
+    assert.equal(exportTransactions?.inputSchema.properties?.fields, undefined);
 
     const res = await client.callTool({
       name: 'list_transaction',

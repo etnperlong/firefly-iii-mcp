@@ -38,6 +38,7 @@ await server.connect(transport);
 - 提供 Firefly III API 的完整交互功能
 - 实现 Model Context Protocol 标准
 - 支持多种传输方式（stdio, HTTP 等）
+- 支持紧凑响应模式（`compactResponses`）、按工具传入 `compact` / `fields` 字段筛选，以及 `batch_update_transactions` 批量更新助手
 
 ## 系统要求
 

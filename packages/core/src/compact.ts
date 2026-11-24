@@ -119,30 +119,33 @@ function compactValue(value: unknown, isRoot = false): unknown {
   }
 
   if (isJsonApiResource(value)) {
-    const resourceOut: Record<string, unknown> = {
-      id: value.id,
-      type: value.type,
-    };
-    const attrs = value.attributes as Record<string, unknown>;
+    const resourceOut: Record<string, unknown> = {};
     const isTxResource = value.type === 'transactions';
-    const compactedAttrs: Record<string, unknown> = {};
 
-    for (const [key, attrVal] of Object.entries(attrs)) {
-      if (attrVal === null || attrVal === undefined) continue;
-      if (isTxResource && REDUNDANT_ENVELOPE_METADATA.has(key)) continue;
-      if (isTxResource && key === 'transactions' && Array.isArray(attrVal)) {
-        const isSingle = attrVal.length === 1;
-        compactedAttrs[key] = attrVal.map((split) =>
-          isTransactionSplit(split)
-            ? compactSplit(split, isSingle)
-            : compactValue(split),
-        );
+    for (const [key, propVal] of Object.entries(value)) {
+      if (propVal === null || propVal === undefined || key === 'links') continue;
+      if (key === 'attributes' && isPlainObject(propVal)) {
+        const compactedAttrs: Record<string, unknown> = {};
+        for (const [attrKey, attrVal] of Object.entries(propVal)) {
+          if (attrVal === null || attrVal === undefined) continue;
+          if (isTxResource && REDUNDANT_ENVELOPE_METADATA.has(attrKey)) continue;
+          if (isTxResource && attrKey === 'transactions' && Array.isArray(attrVal)) {
+            const isSingle = attrVal.length === 1;
+            compactedAttrs[attrKey] = attrVal.map((split) =>
+              isTransactionSplit(split)
+                ? compactSplit(split, isSingle)
+                : compactValue(split),
+            );
+          } else {
+            compactedAttrs[attrKey] = compactValue(attrVal);
+          }
+        }
+        resourceOut.attributes = compactedAttrs;
       } else {
-        compactedAttrs[key] = compactValue(attrVal);
+        resourceOut[key] = compactValue(propVal);
       }
     }
 
-    resourceOut.attributes = compactedAttrs;
     return resourceOut;
   }
 
@@ -151,12 +154,9 @@ function compactValue(value: unknown, isRoot = false): unknown {
   }
 
   const out: Record<string, unknown> = {};
-  const isEnvelope = 'data' in value;
 
   for (const [key, propVal] of Object.entries(value)) {
-    if (propVal === null || propVal === undefined) continue;
-    if ((isRoot || isEnvelope) && key === 'links') continue;
-    if (!isRoot && key === 'links') continue;
+    if (propVal === null || propVal === undefined || key === 'links') continue;
     out[key] = compactValue(propVal, false);
   }
   return out;
@@ -181,21 +181,23 @@ function projectResource(
   fieldSet: Set<string>,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  if ('id' in resource) out.id = resource.id;
-  if ('type' in resource) out.type = resource.type;
 
-  if (isPlainObject(resource.attributes)) {
-    const attrs = resource.attributes;
-    if (Array.isArray(attrs.transactions)) {
-      const projectedAttrs = pickKeys(attrs, fieldSet);
-      projectedAttrs.transactions = attrs.transactions.map((split) =>
-        isPlainObject(split)
-          ? pickKeys(split, fieldSet, ['transaction_journal_id'])
-          : split,
-      );
-      out.attributes = projectedAttrs;
+  for (const [key, propVal] of Object.entries(resource)) {
+    if (propVal === null || propVal === undefined || key === 'links') continue;
+    if (key === 'attributes' && isPlainObject(propVal)) {
+      if (resource.type === 'transactions' && Array.isArray(propVal.transactions)) {
+        const projectedAttrs = pickKeys(propVal, fieldSet);
+        projectedAttrs.transactions = propVal.transactions.map((split) =>
+          isPlainObject(split)
+            ? pickKeys(split, fieldSet, ['transaction_journal_id'])
+            : split,
+        );
+        out.attributes = projectedAttrs;
+      } else {
+        out.attributes = pickKeys(propVal, fieldSet);
+      }
     } else {
-      out.attributes = pickKeys(attrs, fieldSet);
+      out[key] = propVal;
     }
   }
 
@@ -253,16 +255,17 @@ export function compactResponseData(
   options: CompactOptions = {},
 ): unknown {
   const hasFields = Array.isArray(options.fields) && options.fields.length > 0;
-  let result = hasFields ? applyFieldProjection(data, options.fields!) : data;
-
-  if (options.compact) {
-    result = compactValue(result, true);
-  } else if (hasFields) {
-    // Even with fields-only projection, strip null/undefined leaves cleanly.
-    result = stripNullish(result);
+  if (hasFields) {
+    // Treat `fields` as an explicit allowlist: never prune caller-requested
+    // keys via heuristic metadata compaction, only omit nullish leaves.
+    return stripNullish(applyFieldProjection(data, options.fields!));
   }
 
-  return result;
+  if (options.compact) {
+    return compactValue(data, true);
+  }
+
+  return data;
 }
 
 function stripNullish(value: unknown): unknown {

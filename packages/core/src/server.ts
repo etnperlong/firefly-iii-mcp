@@ -17,6 +17,11 @@ import {
   executeBatchUpdateTransactions,
 } from "./batch-transactions.js";
 
+const supportsCompactParameters = (def: McpToolDefinition): boolean =>
+  def.method.toLowerCase() === 'get' &&
+  !def.name.startsWith('download_') &&
+  !def.name.startsWith('export_');
+
 const allTools: McpToolDefinition[] = [
   ...generatedTools,
   batchUpdateTransactionsToolDefinition,
@@ -29,10 +34,9 @@ export const executeApiTool = async (
   serverConfig: McpServerConfig,
 ): Promise<CallToolResult> => {
   let validatedArgs: CallToolRequestArguments;
-  const effectiveInputSchema =
-    definition.method.toLowerCase() === 'get'
-      ? withCompactParameters(definition.inputSchema)
-      : definition.inputSchema;
+  const effectiveInputSchema = supportsCompactParameters(definition)
+    ? withCompactParameters(definition.inputSchema)
+    : definition.inputSchema;
 
   try {
     // Validate arguments against the input schema
@@ -261,10 +265,9 @@ export const getServer = (serverConfig: McpServerConfig): Server => {
     const toolsForClient: Tool[] = allTools
       .filter(def => enableToolTags.length === 0 || enableToolTags.some(tag => def.tags.includes(tag)))
       .map(def => {
-        const schema =
-          def.method.toLowerCase() === 'get'
-            ? withCompactParameters(def.inputSchema)
-            : def.inputSchema;
+        const schema = supportsCompactParameters(def)
+          ? withCompactParameters(def.inputSchema)
+          : def.inputSchema;
         return {
           name: def.name,
           description: def.description,

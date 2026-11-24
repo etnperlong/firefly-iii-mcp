@@ -37,9 +37,14 @@ export class FireflyIIIMcpServer {
     // Get preset, tools, and compact mode arguments
     const presetArgIndex = process.argv.indexOf('--preset');
     const toolsArgIndex = process.argv.indexOf('--tools');
-    const compactResponses =
-      process.argv.includes('--compact') ||
-      ['true', '1', 'yes'].includes((process.env.FIREFLY_III_COMPACT ?? '').toLowerCase());
+    let compactResponses = ['true', '1', 'yes'].includes(
+      (process.env.FIREFLY_III_COMPACT ?? '').toLowerCase(),
+    );
+    if (process.argv.includes('--no-compact')) {
+      compactResponses = false;
+    } else if (process.argv.includes('--compact') || process.argv.includes('-c')) {
+      compactResponses = true;
+    }
     
     // Process enableToolTags
     let enableToolTags: string[] | undefined = undefined;
@@ -79,7 +84,7 @@ export class FireflyIIIMcpServer {
     
     if (!pat || !baseUrl) {
       console.error('Error: FIREFLY_III_PAT and FIREFLY_III_BASE_URL are required for running MCP server locally');
-      console.error('Usage: firefly-iii-mcp --pat FIREFLY_III_PAT --baseUrl FIREFLY_III_BASE_URL [--preset PRESET_NAME] [--tools TAG1,TAG2,...] [--compact]');
+      console.error('Usage: firefly-iii-mcp --pat FIREFLY_III_PAT --baseUrl FIREFLY_III_BASE_URL [--preset PRESET_NAME] [--tools TAG1,TAG2,...] [-c|--compact|--no-compact]');
       console.error('Or set environment variables:');
       console.error('  FIREFLY_III_PAT: Personal Access Token');
       console.error('  FIREFLY_III_BASE_URL: Firefly III instance URL');
